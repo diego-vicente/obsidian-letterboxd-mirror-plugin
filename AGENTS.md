@@ -1,6 +1,72 @@
-# Obsidian community plugin
+# Letterboxd Mirror - Obsidian Plugin
 
 ## Project overview
+
+**Letterboxd Mirror** syncs your Letterboxd diary entries as Obsidian notes.
+
+### Features
+- **RSS Sync**: Fetches from `letterboxd.com/{username}/rss`, creates notes with poster, TMDB ID, review, rating, etc.
+- **CSV Import**: Imports from Letterboxd data export (diary.csv + reviews.csv merged) to enrich existing notes with tags
+- **Deduplication**: By GUID in frontmatter and filename pattern matching
+- **Configurable templates**: Both filename and note content are templated with `{{variables}}`
+- **Auto-sync on startup** (optional)
+- **Ribbon icon** (clapperboard) for quick sync
+
+### Current limitations
+- **Rewatches are not yet supported**: Films watched multiple times are skipped during CSV import
+
+### File structure
+```
+src/
+  main.ts                    # Plugin lifecycle, commands, folder picker for CSV
+  types.ts                   # LetterboxdEntry, LetterboxdSettings interfaces
+  settings.ts                # Settings UI, DEFAULT_SETTINGS, default template
+  letterboxd/
+    parser.ts                # RSS fetch + XML parsing
+    csv-parser.ts            # Parses diary.csv + reviews.csv, merges them
+  notes/
+    template.ts              # {{variable}} substitution, filename generation
+    sync.ts                  # RSS sync + CSV import logic
+  templates/
+    default-note.md          # Reference template
+```
+
+### Template variables
+| Variable | Example |
+|----------|---------|
+| `{{filmTitle}}` | The Revenant |
+| `{{filmYear}}` | 2015 |
+| `{{userRatingNoOver5}}` | 3.5 |
+| `{{userRatingNoOver10}}` | 7 |
+| `{{userRatingStars}}` | ★★★½ |
+| `{{watchedDate}}` | 2025-12-04 |
+| `{{watchedDatetime}}` | 2025-12-04T00:00 |
+| `{{rewatch}}` | true/false |
+| `{{link}}` | URL |
+| `{{tmdbId}}` | 281957 (empty from CSV) |
+| `{{posterUrl}}` | URL (empty from CSV) |
+| `{{guid}}` | letterboxd-review-* or letterboxd-csv-* |
+| `{{review}}` | Review text |
+| `{{tags}}` | `["tag1", "tag2"]` |
+
+### CSV import behavior
+- **CSV is full import**: Creates notes even with missing fields (poster, tmdb empty)
+- **Matching logic**: By GUID or filename, must be exactly 1 match
+- **Validation first**: Checks all entries for ambiguous matches before modifying anything
+- **Frontmatter-only updates**: For existing notes, only updates frontmatter, never touches body
+- **Immutable fields**: `guid`, `tmdbId`, `posterUrl` are never overwritten by CSV
+- **Tags sentinel**: RSS entries get `["_pending_csv_import"]` for tags, CSV replaces with real tags (even if empty)
+- **Empty values preserved**: CSV won't overwrite existing values with empty ones (except tags sentinel)
+
+### Local installation
+```bash
+npm run build
+OBSIDIAN_VAULT=/path/to/vault ./install-local.sh
+```
+
+---
+
+## Obsidian plugin development guide
 
 - Target: Obsidian Community Plugin (TypeScript → bundled JavaScript).
 - Entry point: `main.ts` compiled to `main.js` and loaded by Obsidian.
