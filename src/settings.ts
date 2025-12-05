@@ -5,23 +5,23 @@ import type { LetterboxdSettings } from "./types";
 /** Default note template - loaded from templates/default-note.md at build time */
 const DEFAULT_NOTE_TEMPLATE = `---
 film: "[[{{filmTitle}} ({{filmYear}})]]"
-rating: {{userRatingNoOver5}}
+rating: {{userRatingNoOver10}}
 watched_date: {{watchedDate}}
-letterboxd_url: "{{link}}"
+letterboxd_url: {{link yaml=true}}
 tmdb_id: {{tmdbId}}
-poster: "{{posterUrl}}"
+poster: {{posterUrl yaml=true}}
 letterboxd_guid: {{guid}}
-letterboxd_tags: {{tags}}
+letterboxd_tags: {{tags yaml=true}}
 ---
 
 # [[{{filmTitle}} ({{filmYear}})]]
 
-![]({{posterUrl}})
+{{posterUrl skipEmpty=true prefix="![Poster](" suffix=")"}}
 
 **Rating**: {{userRatingStars}}
 **Watched**: {{watchedDate}}{{#if rewatch}} (rewatch){{/if}}
 
-> {{review}}
+{{review skipEmpty=true quote=true}}
 
 ---
 [View on Letterboxd]({{link}})

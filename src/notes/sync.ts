@@ -228,8 +228,14 @@ function findMatchingNote(
 			// Additional check: verify it's the same film by checking frontmatter
 			const filmMatch = note.content.match(/^film:\s*"?\[\[([^\]]+)\]\]"?/m);
 			if (filmMatch) {
-				const noteFilmTitle = filmMatch[1].toLowerCase().trim();
-				const entryFilmTitle = entry.filmTitle.toLowerCase().trim();
+				// TODO: Normalize titles by stripping year suffix (e.g., "(2024)") for comparison.
+				// This is a workaround because the note template may include the year in the title
+				// (e.g., "[[Film Title (2024)]]") while the CSV entry only has the raw title.
+				// We can't use TMDB ID for matching because CSV exports don't include it.
+				// A better solution would be to match by a unique identifier in frontmatter.
+				// Related: https://github.com/diego-vicente/obsidian-letterboxd-mirror-plugin/issues/1
+				const noteFilmTitle = filmMatch[1].toLowerCase().trim().replace(/\s*\(\d{4}\)$/, "");
+				const entryFilmTitle = entry.filmTitle.toLowerCase().trim().replace(/\s*\(\d{4}\)$/, "");
 				if (noteFilmTitle === entryFilmTitle) {
 					matches.push(note);
 				}
