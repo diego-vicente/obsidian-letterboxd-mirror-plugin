@@ -4,7 +4,7 @@ import type { LetterboxdSettings } from "./types";
 
 /** Default note template - loaded from templates/default-note.md at build time */
 const DEFAULT_NOTE_TEMPLATE = `---
-film: "[[{{filmTitle}}]]"
+film: "[[{{filmTitle}} ({{filmYear}})]]"
 rating: {{userRatingNoOver5}}
 watched_date: {{watchedDate}}
 letterboxd_url: "{{link}}"
@@ -14,7 +14,7 @@ letterboxd_guid: {{guid}}
 letterboxd_tags: {{tags}}
 ---
 
-# [[{{filmTitle}}]] ({{filmYear}})
+# [[{{filmTitle}} ({{filmYear}})]]
 
 ![]({{posterUrl}})
 
@@ -36,7 +36,59 @@ const DEFAULT_FOLDER_PATH = "Letterboxd";
 /** Default frontmatter key for GUID */
 const DEFAULT_GUID_KEY = "letterboxd_guid";
 
+// ============================================================================
+// TMDB Defaults
+// ============================================================================
+
+/** Default folder for Film notes */
+const DEFAULT_TMDB_FOLDER_PATH = "Films";
+
+/** Default filename template for Film notes */
+const DEFAULT_TMDB_FILENAME_TEMPLATE = "{{title}} ({{year}})";
+
+/** Default frontmatter key for TMDB ID */
+const DEFAULT_TMDB_ID_KEY = "tmdb_id";
+
+/** Default language for TMDB API */
+const DEFAULT_TMDB_LANGUAGE = "en-US";
+
+/** Default note template for Film notes */
+const DEFAULT_TMDB_NOTE_TEMPLATE = `---
+title: "{{title}}"
+original_title: "{{originalTitle}}"
+year: {{year}}
+release_date: {{releaseDate}}
+runtime: {{runtime}}
+tmdb_id: {{tmdbId}}
+imdb_id: "{{imdbId}}"
+tmdb_rating: {{tmdbRating}}
+genres: {{genres}}
+directors: {{directors}}
+cast: {{cast}}
+poster: "{{posterUrlL}}"
+---
+
+# {{title}} ({{year}})
+
+![]({{posterUrlL}})
+
+{{#if tagline}}> {{tagline}}{{/if}}
+
+{{overview}}
+
+**Runtime**: {{runtimeFormatted}}
+**Genres**: {{genreList}}
+
+## Cast
+
+{{castWithRoles}}
+
+---
+[TMDB]({{tmdbUrl}}){{#if imdbId}} | [IMDb](https://imdb.com/title/{{imdbId}}){{/if}}
+`;
+
 export const DEFAULT_SETTINGS: LetterboxdSettings = {
+	// Letterboxd settings
 	username: "",
 	folderPath: DEFAULT_FOLDER_PATH,
 	filenameTemplate: DEFAULT_FILENAME_TEMPLATE,
@@ -44,6 +96,13 @@ export const DEFAULT_SETTINGS: LetterboxdSettings = {
 	syncOnStartup: true,
 	syncReviewsOnly: false,
 	guidFrontmatterKey: DEFAULT_GUID_KEY,
+	// TMDB settings
+	tmdbApiKey: "",
+	tmdbFolderPath: DEFAULT_TMDB_FOLDER_PATH,
+	tmdbFilenameTemplate: DEFAULT_TMDB_FILENAME_TEMPLATE,
+	tmdbNoteTemplate: DEFAULT_TMDB_NOTE_TEMPLATE,
+	tmdbLanguage: DEFAULT_TMDB_LANGUAGE,
+	tmdbIdFrontmatterKey: DEFAULT_TMDB_ID_KEY,
 };
 
 export class LetterboxdSettingTab extends PluginSettingTab {
@@ -168,6 +227,100 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setWarning()
 					.onClick(async () => {
 						this.plugin.settings.noteTemplate = DEFAULT_NOTE_TEMPLATE;
+						await this.plugin.saveSettings();
+						this.display(); // Re-render to show updated value
+					})
+			);
+
+		// ============================================================================
+		// TMDB Settings Section
+		// ============================================================================
+
+		containerEl.createEl("h2", { text: "TMDB Integration" });
+
+		const tmdbDisclosureEl = containerEl.createEl("p", {
+			cls: "setting-item-description",
+		});
+		tmdbDisclosureEl.innerHTML = `When a TMDB API key is provided, the plugin will create Film notes with enriched metadata from <a href="https://www.themoviedb.org/">The Movie Database</a>. Get your API key from <a href="https://www.themoviedb.org/settings/api">TMDB Settings</a>.`;
+
+		new Setting(containerEl)
+			.setName("TMDB API Read Access Token")
+			.setDesc("Your TMDB API Read Access Token (not the API key)")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your TMDB API key")
+					.setValue(this.plugin.settings.tmdbApiKey)
+					.onChange(async (value) => {
+						this.plugin.settings.tmdbApiKey = value.trim();
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Films folder path")
+			.setDesc("Folder where Film notes will be created")
+			.addText((text) =>
+				text
+					.setPlaceholder(DEFAULT_TMDB_FOLDER_PATH)
+					.setValue(this.plugin.settings.tmdbFolderPath)
+					.onChange(async (value) => {
+						this.plugin.settings.tmdbFolderPath = value.trim() || DEFAULT_TMDB_FOLDER_PATH;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Film filename template")
+			.setDesc("Template for Film note filenames. Available: {{title}}, {{originalTitle}}, {{year}}, {{tmdbId}}, {{imdbId}}")
+			.addText((text) =>
+				text
+					.setPlaceholder(DEFAULT_TMDB_FILENAME_TEMPLATE)
+					.setValue(this.plugin.settings.tmdbFilenameTemplate)
+					.onChange(async (value) => {
+						this.plugin.settings.tmdbFilenameTemplate = value.trim() || DEFAULT_TMDB_FILENAME_TEMPLATE;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("TMDB language")
+			.setDesc("Preferred language for TMDB data (e.g., 'en-US', 'es-ES', 'fr-FR')")
+			.addText((text) =>
+				text
+					.setPlaceholder(DEFAULT_TMDB_LANGUAGE)
+					.setValue(this.plugin.settings.tmdbLanguage)
+					.onChange(async (value) => {
+						this.plugin.settings.tmdbLanguage = value.trim() || DEFAULT_TMDB_LANGUAGE;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		// Film note template (textarea)
+		new Setting(containerEl)
+			.setName("Film note template")
+			.setDesc("Template for Film note content. Available: {{title}}, {{originalTitle}}, {{year}}, {{releaseDate}}, {{runtime}}, {{runtimeFormatted}}, {{overview}}, {{tagline}}, {{genres}}, {{genreList}}, {{tmdbRating}}, {{tmdbVoteCount}}, {{budget}}, {{revenue}}, {{imdbId}}, {{tmdbId}}, {{tmdbUrl}}, {{posterUrlXXS/XS/S/M/L/XL/OG}}, {{backdropUrlS/M/L/OG}}, {{productionCompanies}}, {{productionCompanyList}}, {{spokenLanguages}}, {{spokenLanguageList}}, {{collection}}. Conditionals: {{#if tagline}}...{{/if}}")
+			.addTextArea((text) => {
+				text
+					.setPlaceholder(DEFAULT_TMDB_NOTE_TEMPLATE)
+					.setValue(this.plugin.settings.tmdbNoteTemplate)
+					.onChange(async (value) => {
+						this.plugin.settings.tmdbNoteTemplate = value || DEFAULT_TMDB_NOTE_TEMPLATE;
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.rows = 20;
+				text.inputEl.cols = 60;
+			});
+
+		// Reset TMDB template button
+		new Setting(containerEl)
+			.setName("Reset Film template")
+			.setDesc("Reset the Film note template to default")
+			.addButton((button) =>
+				button
+					.setButtonText("Reset")
+					.setWarning()
+					.onClick(async () => {
+						this.plugin.settings.tmdbNoteTemplate = DEFAULT_TMDB_NOTE_TEMPLATE;
 						await this.plugin.saveSettings();
 						this.display(); // Re-render to show updated value
 					})

@@ -14,6 +14,8 @@ export interface SyncResult {
 	created: number;
 	skipped: number;
 	errors: number;
+	/** TMDB IDs of newly created entries (for triggering TMDB sync) */
+	createdTmdbIds: string[];
 }
 
 export interface CSVImportResult {
@@ -132,7 +134,7 @@ async function createNote(plugin: LetterboxdPlugin, entry: LetterboxdEntry): Pro
 export async function syncDiary(plugin: LetterboxdPlugin): Promise<SyncResult> {
 	const { username, folderPath, syncReviewsOnly } = plugin.settings;
 
-	const result: SyncResult = { created: 0, skipped: 0, errors: 0 };
+	const result: SyncResult = { created: 0, skipped: 0, errors: 0, createdTmdbIds: [] };
 
 	if (!username) {
 		new Notice("Letterboxd: Please set your username in settings");
@@ -166,6 +168,10 @@ export async function syncDiary(plugin: LetterboxdPlugin): Promise<SyncResult> {
 			try {
 				await createNote(plugin, entry);
 				result.created++;
+				// Collect TMDB ID for potential TMDB sync
+				if (entry.tmdbId) {
+					result.createdTmdbIds.push(entry.tmdbId);
+				}
 			} catch (error) {
 				console.error(`Letterboxd: Failed to create "${entry.filmTitle}"`, error);
 				result.errors++;

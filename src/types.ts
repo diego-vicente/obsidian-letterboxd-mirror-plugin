@@ -53,4 +53,21 @@ export interface LetterboxdSettings {
 	syncReviewsOnly: boolean;
 	/** Frontmatter key used to store the Letterboxd GUID for deduplication */
 	guidFrontmatterKey: string;
+
+	// ============================================================================
+	// TMDB Settings
+	// ============================================================================
+
+	/** TMDB API Read Access Token (Bearer token) - enables TMDB features when set */
+	tmdbApiKey: string;
+	/** Folder path for Film notes */
+	tmdbFolderPath: string;
+	/** Filename template for Film notes */
+	tmdbFilenameTemplate: string;
+	/** Note content template for Film notes */
+	tmdbNoteTemplate: string;
+	/** Preferred language for TMDB data (e.g., "en-US") */
+	tmdbLanguage: string;
+	/** Frontmatter key used to store TMDB ID for deduplication */
+	tmdbIdFrontmatterKey: string;
 }

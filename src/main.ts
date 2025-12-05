@@ -2,6 +2,7 @@ import { Plugin, Notice } from "obsidian";
 import type { LetterboxdSettings } from "./types";
 import { DEFAULT_SETTINGS, LetterboxdSettingTab } from "./settings";
 import { syncDiary, importFromCSV } from "./notes/sync";
+import { syncFilmsFromTMDB, syncAllFilmsFromDiary } from "./tmdb/sync";
 
 /** Delay before auto-sync on startup (ms) - allows vault to fully load */
 const STARTUP_SYNC_DELAY_MS = 3000;
@@ -33,6 +34,13 @@ export default class LetterboxdPlugin extends Plugin {
 			callback: () => this.importCSVFolder(),
 		});
 
+		// Register TMDB sync command
+		this.addCommand({
+			id: "tmdb-sync-films",
+			name: "Sync TMDB film data",
+			callback: () => this.syncTMDBFilms(),
+		});
+
 		// Add ribbon icon
 		this.addRibbonIcon("clapperboard", "Sync Letterboxd diary", () => {
 			this.syncDiary();
@@ -62,9 +70,33 @@ export default class LetterboxdPlugin extends Plugin {
 
 	/**
 	 * Triggers a diary sync via RSS
+	 * If TMDB API key is configured, also syncs Film notes for new entries
 	 */
 	async syncDiary(): Promise<void> {
-		await syncDiary(this);
+		const result = await syncDiary(this);
+
+		// If TMDB is enabled and we created new diary entries, sync Film notes
+		if (this.settings.tmdbApiKey && result.createdTmdbIds.length > 0) {
+			const tmdbResult = await syncFilmsFromTMDB(this, result.createdTmdbIds);
+			if (tmdbResult.created > 0 || tmdbResult.errors > 0) {
+				const parts: string[] = [];
+				if (tmdbResult.created > 0) parts.push(`${tmdbResult.created} films created`);
+				if (tmdbResult.skipped > 0) parts.push(`${tmdbResult.skipped} skipped`);
+				if (tmdbResult.errors > 0) parts.push(`${tmdbResult.errors} errors`);
+				new Notice(`TMDB: ${parts.join(", ")}`);
+			}
+		}
+	}
+
+	/**
+	 * Syncs all TMDB Film notes from existing diary entries
+	 */
+	async syncTMDBFilms(): Promise<void> {
+		if (!this.settings.tmdbApiKey) {
+			new Notice("TMDB: Please set your API key in settings");
+			return;
+		}
+		await syncAllFilmsFromDiary(this);
 	}
 
 	/**
