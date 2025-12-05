@@ -1,6 +1,7 @@
 import { requestUrl } from "obsidian";
 import { TAGS_PENDING_FROM_RSS } from "../types";
 import type { LetterboxdEntry } from "../types";
+import { extractViewingIdFromRssGuid } from "./fetcher";
 
 /** Base URL for Letterboxd RSS feeds */
 const LETTERBOXD_RSS_BASE_URL = "https://letterboxd.com";
@@ -163,7 +164,7 @@ function parseItem(item: Element): LetterboxdEntry {
 		link,
 		tmdbId,
 		posterUrl: extractPosterUrl(description),
-		guid,
+		guid: extractViewingIdFromRssGuid(guid) ?? guid,
 		review: extractReviewText(description),
 		pubDate: parseDate(pubDateRaw),
 		containsSpoilers,

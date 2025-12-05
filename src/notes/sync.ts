@@ -4,6 +4,7 @@ import type { LetterboxdEntry, LetterboxdSettings } from "../types";
 import { TAGS_PENDING_FROM_RSS } from "../types";
 import { fetchLetterboxdRSS } from "../letterboxd/parser";
 import { parseLetterboxdExport } from "../letterboxd/csv-parser";
+import { getExistingTmdbIds } from "../tmdb/sync";
 import { renderTemplate, generateFilename } from "./template";
 
 // ============================================================================
@@ -23,6 +24,8 @@ export interface CSVImportResult {
 	updated: number;
 	skipped: number;
 	errors: string[];
+	/** TMDB IDs of films that need Film notes created (no existing note found) */
+	newTmdbIds: string[];
 }
 
 interface ExistingNote {
@@ -437,58 +440,11 @@ async function validateCSVImport(
 }
 
 /**
- * Creates a key to identify unique films (for detecting rewatches)
- */
-function createFilmKey(entry: LetterboxdEntry): string {
-	return `${entry.filmTitle.toLowerCase()}|${entry.filmYear}`;
-}
-
-/**
- * Filters out rewatched films (same film watched multiple times)
- * Returns entries that are unique and a count of skipped rewatches
- */
-function filterRewatches(entries: LetterboxdEntry[]): {
-	unique: LetterboxdEntry[];
-	rewatchCount: number;
-	rewatchedFilms: string[];
-} {
-	const filmCounts = new Map<string, number>();
-	
-	// Count occurrences of each film
-	for (const entry of entries) {
-		const key = createFilmKey(entry);
-		filmCounts.set(key, (filmCounts.get(key) || 0) + 1);
-	}
-	
-	// Filter to only films watched once, track rewatched films
-	const rewatchedFilms: string[] = [];
-	const unique = entries.filter((entry) => {
-		const key = createFilmKey(entry);
-		const count = filmCounts.get(key) || 0;
-		if (count > 1) {
-			// Only add to rewatchedFilms list once per film
-			const filmName = `${entry.filmTitle} (${entry.filmYear})`;
-			if (!rewatchedFilms.includes(filmName)) {
-				rewatchedFilms.push(filmName);
-			}
-			return false;
-		}
-		return true;
-	});
-	
-	return {
-		unique,
-		rewatchCount: entries.length - unique.length,
-		rewatchedFilms,
-	};
-}
-
-/**
  * Imports diary entries from Letterboxd CSV export
  * - Creates new notes for entries not in vault
- * - Updates frontmatter for existing notes (matched by GUID or filename)
+ * - Updates frontmatter for existing notes (matched by viewing ID)
  * - Never touches the body of existing notes
- * - Skips rewatched films (unsupported for now)
+ * - Supports rewatches (each has a unique viewing ID)
  */
 export async function importFromCSV(
 	plugin: LetterboxdPlugin,
@@ -500,35 +456,33 @@ export async function importFromCSV(
 		updated: 0,
 		skipped: 0,
 		errors: [],
+		newTmdbIds: [],
 	};
 
 	const { folderPath, filenameTemplate } = plugin.settings;
 
 	try {
-		new Notice("Letterboxd: Processing CSV...");
+		new Notice("Letterboxd: Processing CSV and fetching data from Letterboxd...");
 
-		// Parse CSV files
-		const allEntries = parseLetterboxdExport(diaryCSV, reviewsCSV);
+		// Parse and enrich CSV files (fetches viewing ID and TMDB ID from Letterboxd)
+		const allEntries = await parseLetterboxdExport(
+			diaryCSV,
+			reviewsCSV,
+			(current, total, filmTitle) => {
+				// Update notice periodically to show progress
+				if (current % 10 === 0 || current === total) {
+					new Notice(`Letterboxd: Fetching data... ${current}/${total}`);
+				}
+				console.log(`Letterboxd: Enriching ${current}/${total}: ${filmTitle}`);
+			}
+		);
 
 		if (allEntries.length === 0) {
 			new Notice("Letterboxd: No entries found in CSV");
 			return result;
 		}
 
-		// Filter out rewatches (unsupported for now)
-		const { unique: entries, rewatchCount, rewatchedFilms } = filterRewatches(allEntries);
-		
-		if (rewatchCount > 0) {
-			new Notice(
-				`Letterboxd: Skipping ${rewatchCount} rewatch entries (${rewatchedFilms.length} films). Rewatches are not yet supported.`
-			);
-			console.log("Letterboxd: Skipped rewatched films:", rewatchedFilms);
-		}
-
-		if (entries.length === 0) {
-			new Notice("Letterboxd: All entries are rewatches, nothing to import");
-			return result;
-		}
+		const entries = allEntries;
 
 		await ensureFolderExists(plugin, folderPath);
 
@@ -552,6 +506,9 @@ export async function importFromCSV(
 			console.error("Letterboxd CSV validation errors:", validationErrors);
 			return result;
 		}
+
+		// Get existing Film notes' TMDB IDs to determine which need to be created
+		const existingTmdbIds = await getExistingTmdbIds(plugin);
 
 		// Process entries
 		for (const entry of entries) {
@@ -581,6 +538,15 @@ export async function importFromCSV(
 					// Create new note
 					await createNote(plugin, entry);
 					result.created++;
+				}
+
+				// Check if Film note needs to be created
+				if (entry.tmdbId) {
+					if (!existingTmdbIds.has(entry.tmdbId)) {
+						result.newTmdbIds.push(entry.tmdbId);
+						// Add to set to avoid duplicates within the batch
+						existingTmdbIds.add(entry.tmdbId);
+					}
 				}
 			} catch (error) {
 				const msg = error instanceof Error ? error.message : "Unknown error";

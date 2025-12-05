@@ -7,10 +7,15 @@
  * 
  * reviews.csv is a superset - contains entries that have reviews.
  * We merge both to get: all diary entries + reviews where available.
+ * 
+ * After parsing, entries are enriched by fetching Letterboxd pages to get:
+ * - Viewing ID (for matching with RSS entries)
+ * - TMDB ID (for creating Film notes)
  */
 
 import type { LetterboxdEntry } from "../types";
 import { ratingToStars } from "./parser";
+import { fetchLetterboxdPageData } from "./fetcher";
 
 /**
  * Parses a CSV line, handling quoted fields with commas and embedded quotes
@@ -58,28 +63,6 @@ function parseTags(tagsField: string): string[] {
 }
 
 /**
- * Generates a GUID for CSV entries
- * Format: letterboxd-csv-{uri-slug}
- * We extract the slug from the Letterboxd URI (e.g., https://boxd.it/abc123 -> abc123)
- */
-function generateCSVGuid(uri: string): string {
-	// Extract the ID from Letterboxd URI
-	// Format: https://boxd.it/XXXXX or https://letterboxd.com/user/film/slug/
-	const match = uri.match(/boxd\.it\/([a-zA-Z0-9]+)/) || 
-	              uri.match(/letterboxd\.com\/[^/]+\/film\/[^/]+\/(\d+)/);
-	
-	if (match) {
-		return `letterboxd-csv-${match[1]}`;
-	}
-	
-	// Fallback: hash the URI
-	const hash = uri.split("").reduce((acc, char) => {
-		return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
-	}, 0);
-	return `letterboxd-csv-${Math.abs(hash).toString(36)}`;
-}
-
-/**
  * Intermediate structure for merging diary + reviews
  */
 interface CSVEntryData {
@@ -92,6 +75,16 @@ interface CSVEntryData {
 	review: string;
 	watchedDate: string;
 	loggedDate: string;
+}
+
+/**
+ * Enriched entry data after fetching from Letterboxd pages
+ */
+interface EnrichedCSVEntryData extends CSVEntryData {
+	/** Viewing ID from Letterboxd (e.g., "1093163294") */
+	viewingId: string;
+	/** TMDB movie ID (e.g., "281957") */
+	tmdbId: string;
 }
 
 /**
@@ -182,9 +175,9 @@ function parseReviewsCSV(csvContent: string): Map<string, CSVEntryData> {
 }
 
 /**
- * Converts CSV entry data to LetterboxdEntry
+ * Converts enriched CSV entry data to LetterboxdEntry
  */
-function toLetterboxdEntry(data: CSVEntryData): LetterboxdEntry {
+function toLetterboxdEntry(data: EnrichedCSVEntryData): LetterboxdEntry {
 	return {
 		filmTitle: data.filmTitle,
 		filmYear: data.filmYear,
@@ -193,9 +186,9 @@ function toLetterboxdEntry(data: CSVEntryData): LetterboxdEntry {
 		watchedDate: data.watchedDate,
 		rewatch: data.rewatch,
 		link: data.uri,
-		tmdbId: "", // Not available in CSV
-		posterUrl: "", // Not available in CSV
-		guid: generateCSVGuid(data.uri),
+		tmdbId: data.tmdbId,
+		posterUrl: "", // Will be fetched from TMDB if needed
+		guid: data.viewingId,
 		review: data.review,
 		pubDate: data.loggedDate,
 		containsSpoilers: false, // Not available in CSV
@@ -204,13 +197,45 @@ function toLetterboxdEntry(data: CSVEntryData): LetterboxdEntry {
 }
 
 /**
+ * Callback for progress reporting during CSV enrichment
+ */
+export type EnrichmentProgressCallback = (current: number, total: number, filmTitle: string) => void;
+
+/**
+ * Enriches a single CSV entry by fetching data from Letterboxd pages
+ */
+async function enrichEntry(data: CSVEntryData): Promise<EnrichedCSVEntryData | null> {
+	const pageData = await fetchLetterboxdPageData(data.uri);
+	
+	if (!pageData) {
+		console.warn(`Letterboxd: Failed to enrich "${data.filmTitle}" - could not fetch page data`);
+		return null;
+	}
+
+	return {
+		...data,
+		viewingId: pageData.viewingId,
+		tmdbId: pageData.tmdbId,
+	};
+}
+
+/**
  * Parses Letterboxd export and returns LetterboxdEntry array
  * Merges diary.csv and reviews.csv - reviews.csv takes precedence for review text
+ * 
+ * This is an async function that fetches additional data from Letterboxd pages
+ * for each entry to get the viewing ID and TMDB ID.
+ * 
+ * @param diaryCSV - Contents of diary.csv
+ * @param reviewsCSV - Contents of reviews.csv  
+ * @param onProgress - Optional callback for progress reporting
+ * @returns Array of enriched LetterboxdEntry objects
  */
-export function parseLetterboxdExport(
+export async function parseLetterboxdExport(
 	diaryCSV: string | null,
-	reviewsCSV: string | null
-): LetterboxdEntry[] {
+	reviewsCSV: string | null,
+	onProgress?: EnrichmentProgressCallback
+): Promise<LetterboxdEntry[]> {
 	const mergedData = new Map<string, CSVEntryData>();
 
 	// Parse diary.csv first
@@ -240,8 +265,29 @@ export function parseLetterboxdExport(
 		}
 	}
 
-	console.log(`Letterboxd: Total merged entries: ${mergedData.size}`);
+	const entries = Array.from(mergedData.values());
+	const totalEntries = entries.length;
+	console.log(`Letterboxd: Total merged entries: ${totalEntries}`);
+	console.log(`Letterboxd: Enriching entries by fetching Letterboxd pages...`);
 
-	// Convert to LetterboxdEntry array
-	return Array.from(mergedData.values()).map(toLetterboxdEntry);
+	// Enrich entries by fetching Letterboxd pages
+	const enrichedEntries: LetterboxdEntry[] = [];
+	
+	for (let i = 0; i < entries.length; i++) {
+		const entry = entries[i];
+		
+		if (onProgress) {
+			onProgress(i + 1, totalEntries, entry.filmTitle);
+		}
+
+		const enrichedData = await enrichEntry(entry);
+		
+		if (enrichedData) {
+			enrichedEntries.push(toLetterboxdEntry(enrichedData));
+		}
+	}
+
+	console.log(`Letterboxd: Successfully enriched ${enrichedEntries.length}/${totalEntries} entries`);
+
+	return enrichedEntries;
 }

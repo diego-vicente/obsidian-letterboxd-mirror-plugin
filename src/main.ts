@@ -152,7 +152,20 @@ export default class LetterboxdPlugin extends Plugin {
 					return;
 				}
 
-				await importFromCSV(this, diaryCSV, reviewsCSV);
+				const csvResult = await importFromCSV(this, diaryCSV, reviewsCSV);
+
+				// If TMDB is enabled and we have new films, sync Film notes
+				if (this.settings.tmdbApiKey && csvResult.newTmdbIds.length > 0) {
+					new Notice(`TMDB: Creating ${csvResult.newTmdbIds.length} Film notes...`);
+					const tmdbResult = await syncFilmsFromTMDB(this, csvResult.newTmdbIds);
+					if (tmdbResult.created > 0 || tmdbResult.errors > 0) {
+						const parts: string[] = [];
+						if (tmdbResult.created > 0) parts.push(`${tmdbResult.created} films created`);
+						if (tmdbResult.skipped > 0) parts.push(`${tmdbResult.skipped} skipped`);
+						if (tmdbResult.errors > 0) parts.push(`${tmdbResult.errors} errors`);
+						new Notice(`TMDB: ${parts.join(", ")}`);
+					}
+				}
 
 			} catch (error) {
 				const message = error instanceof Error ? error.message : "Unknown error";

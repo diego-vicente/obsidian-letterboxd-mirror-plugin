@@ -6,14 +6,13 @@
 
 ### Features
 - **RSS Sync**: Fetches from `letterboxd.com/{username}/rss`, creates notes with poster, TMDB ID, review, rating, etc.
-- **CSV Import**: Imports from Letterboxd data export (diary.csv + reviews.csv merged) to enrich existing notes with tags
-- **Deduplication**: By GUID in frontmatter and filename pattern matching
+- **CSV Import**: Imports from Letterboxd data export (diary.csv + reviews.csv merged), fetches viewing ID and TMDB ID from Letterboxd pages
+- **TMDB Integration**: Creates Film notes with detailed movie data (cast, crew, etc.) from TMDB API
+- **Deduplication**: By viewing ID (unique per diary entry) and TMDB ID (unique per film)
+- **Rewatch support**: Each viewing has a unique ID, so rewatches are fully supported
 - **Configurable templates**: Both filename and note content are templated with `{{variables}}`
 - **Auto-sync on startup** (optional)
 - **Ribbon icon** (clapperboard) for quick sync
-
-### Current limitations
-- **Rewatches are not yet supported**: Films watched multiple times are skipped during CSV import
 
 ### File structure
 ```
@@ -43,15 +42,15 @@ src/
 | `{{watchedDatetime}}` | 2025-12-04T00:00 |
 | `{{rewatch}}` | true/false |
 | `{{link}}` | URL |
-| `{{tmdbId}}` | 281957 (empty from CSV) |
+| `{{tmdbId}}` | 281957 |
 | `{{posterUrl}}` | URL (empty from CSV) |
-| `{{guid}}` | letterboxd-review-* or letterboxd-csv-* |
+| `{{guid}}` | 1093163294 (viewing ID) |
 | `{{review}}` | Review text |
 | `{{tags}}` | `["tag1", "tag2"]` |
 
 ### CSV import behavior
-- **CSV is full import**: Creates notes even with missing fields (poster, tmdb empty)
-- **Matching logic**: By GUID or filename, must be exactly 1 match
+- **Enrichment**: For each CSV entry, fetches Letterboxd page to get viewing ID and TMDB ID
+- **Matching logic**: By viewing ID (GUID), must be exactly 1 match
 - **Validation first**: Checks all entries for ambiguous matches before modifying anything
 - **Frontmatter-only updates**: For existing notes, only updates frontmatter, never touches body
 - **Immutable fields**: `guid`, `tmdbId`, `posterUrl` are never overwritten by CSV

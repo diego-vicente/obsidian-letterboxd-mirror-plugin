@@ -82,6 +82,21 @@ async function getExistingFilmNotes(
 }
 
 /**
+ * Gets a Set of all existing TMDB IDs from Film notes
+ * Used to determine which films need to be fetched from TMDB
+ */
+export async function getExistingTmdbIds(
+	plugin: LetterboxdPlugin
+): Promise<Set<string>> {
+	const notes = await getExistingFilmNotes(plugin);
+	return new Set(
+		notes
+			.map((n) => n.tmdbId)
+			.filter((id): id is string => id !== null && id !== "")
+	);
+}
+
+/**
  * Creates a Film note for a TMDB movie
  */
 async function createFilmNote(
