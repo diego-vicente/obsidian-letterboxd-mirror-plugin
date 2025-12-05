@@ -74,10 +74,10 @@ function transformResponse(response: TMDBMovieResponse): TMDBMovie {
 	const castMembers = credits?.cast || [];
 	const crewMembers = credits?.crew || [];
 
-	// Sort cast by billing order and extract names
+	// Sort cast by billing order and extract names/characters separately
 	const sortedCast = [...castMembers].sort((a, b) => a.order - b.order);
 	const cast = sortedCast.map((c) => c.name);
-	const castWithRoles = sortedCast.map((c) => `${c.name} as ${c.character}`);
+	const characters = sortedCast.map((c) => c.character);
 
 	// Extract directors from crew
 	const directors = crewMembers
@@ -123,21 +123,26 @@ function transformResponse(response: TMDBMovieResponse): TMDBMovie {
 		collection: response.belongs_to_collection?.name || "",
 		// Credits
 		cast,
-		castWithRoles,
+		characters,
 		directors,
 	};
 }
 
 /** Template variables that require credits data */
-const CREDITS_VARIABLES = ["cast", "castWithRoles", "directors"];
+const CREDITS_VARIABLES = ["cast", "characters", "castWithRoles", "directors"];
 
 /**
  * Checks if a template uses any credits-related variables
+ * Matches both {{variable}} and {{variable param=value}} syntax
  * @param template - Template string to check
  * @returns true if credits data is needed
  */
 export function templateNeedsCredits(template: string): boolean {
-	return CREDITS_VARIABLES.some((v) => template.includes(`{{${v}}}`));
+	// Match {{variableName}} or {{variableName param=value...}}
+	return CREDITS_VARIABLES.some((v) => {
+		const pattern = new RegExp(`\\{\\{${v}(\\s|\\})`);
+		return pattern.test(template);
+	});
 }
 
 /**

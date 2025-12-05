@@ -62,26 +62,25 @@ runtime: {{runtime}}
 tmdb_id: {{tmdbId}}
 imdb_id: "{{imdbId}}"
 tmdb_rating: {{tmdbRating}}
-genres: {{genres}}
-directors: {{directors}}
-cast: {{cast}}
+genres: {{genres yaml=true}}
+directors: {{directors yaml=true}}
+cast: {{cast yaml=true link=true}}
 poster: "{{posterUrlL}}"
 ---
 
 # {{title}} ({{year}})
 
-![]({{posterUrlL}})
+{{posterUrlL skipEmpty=true prefix="![Poster](" suffix=")"}}
 
-{{#if tagline}}> {{tagline}}{{/if}}
-
-{{overview}}
+{{tagline quote=true bold=true}}
+{{overview quote=true}}
 
 **Runtime**: {{runtimeFormatted}}
 **Genres**: {{genreList}}
 
 ## Cast
 
-{{castWithRoles}}
+{{castWithRoles bullet=true linkActors=true}}
 
 ---
 [TMDB]({{tmdbUrl}}){{#if imdbId}} | [IMDb](https://imdb.com/title/{{imdbId}}){{/if}}

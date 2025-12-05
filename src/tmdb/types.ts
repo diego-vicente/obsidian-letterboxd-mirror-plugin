@@ -167,10 +167,10 @@ export interface TMDBMovie {
 	spokenLanguageList: string;
 	/** Collection name if part of a series */
 	collection: string;
-	/** Array of cast member names */
+	/** Array of cast member names (actors) */
 	cast: string[];
-	/** Array of "Actor as Character" strings */
-	castWithRoles: string[];
+	/** Array of character names (in same order as cast) */
+	characters: string[];
 	/** Array of director names */
 	directors: string[];
 }
