@@ -34,7 +34,7 @@ export function ratingToStars(rating: number | null): string {
  * @param descriptionHtml - HTML content from <description> CDATA
  * @returns Poster URL or empty string if not found
  */
-function extractPosterUrl(descriptionHtml: string): string {
+export function extractPosterUrl(descriptionHtml: string): string {
 	const imgMatch = descriptionHtml.match(/<img\s+src="([^"]+)"/);
 	return imgMatch ? imgMatch[1] : "";
 }
@@ -44,7 +44,7 @@ function extractPosterUrl(descriptionHtml: string): string {
  * @param descriptionHtml - HTML content from <description> CDATA
  * @returns Plain text review or empty string if no review
  */
-function extractReviewText(descriptionHtml: string): string {
+export function extractReviewText(descriptionHtml: string): string {
 	// Remove the img tag first
 	let html = descriptionHtml.replace(/<p><img[^>]*\/><\/p>/g, "");
 

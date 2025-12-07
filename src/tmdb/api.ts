@@ -16,7 +16,7 @@ const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
  * @param size - Size code (e.g., "w500", "original")
  * @returns Full URL or empty string if path is null
  */
-function buildImageUrl(path: string | null, size: string): string {
+export function buildImageUrl(path: string | null, size: string): string {
 	if (!path) {
 		return "";
 	}
@@ -28,7 +28,7 @@ function buildImageUrl(path: string | null, size: string): string {
  * @param minutes - Runtime in minutes
  * @returns Formatted string like "2h 36m" or empty if no runtime
  */
-function formatRuntime(minutes: number | null): string {
+export function formatRuntime(minutes: number | null): string {
 	if (!minutes || minutes <= 0) {
 		return "";
 	}
@@ -49,7 +49,7 @@ function formatRuntime(minutes: number | null): string {
  * @param dateStr - Date in YYYY-MM-DD format
  * @returns Year as number or 0 if invalid
  */
-function extractYear(dateStr: string): number {
+export function extractYear(dateStr: string): number {
 	if (!dateStr || dateStr.length < 4) {
 		return 0;
 	}

@@ -63,7 +63,7 @@ tmdb_id: {{tmdbId}}
 imdb_id: "{{imdbId}}"
 tmdb_rating: {{tmdbRating}}
 genres: {{genres yaml=true}}
-directors: {{directors yaml=true}}
+directors: {{directors yaml=true link=true}}
 cast: {{cast yaml=true link=true}}
 poster: "{{posterUrlL}}"
 ---

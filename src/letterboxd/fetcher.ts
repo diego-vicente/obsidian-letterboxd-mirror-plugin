@@ -27,7 +27,7 @@ const LETTERBOXD_BASE_URL = "https://letterboxd.com";
  * Extracts the viewing ID from a Letterboxd user review page HTML
  * Looks for: data-object-id="viewing:1093163294"
  */
-function extractViewingIdFromHtml(html: string): string | null {
+export function extractViewingIdFromHtml(html: string): string | null {
 	const match = html.match(/data-object-id="viewing:(\d+)"/);
 	return match ? match[1] : null;
 }
@@ -36,7 +36,7 @@ function extractViewingIdFromHtml(html: string): string | null {
  * Extracts the film slug from a Letterboxd user review page HTML
  * Looks for: data-item-slug="the-revenant-2015"
  */
-function extractFilmSlug(html: string): string | null {
+export function extractFilmSlug(html: string): string | null {
 	const match = html.match(/data-item-slug="([^"]+)"/);
 	return match ? match[1] : null;
 }
@@ -45,7 +45,7 @@ function extractFilmSlug(html: string): string | null {
  * Extracts the TMDB ID from a Letterboxd main film page HTML
  * Looks for: data-tmdb-id="281957" in the body tag
  */
-function extractTmdbId(html: string): string | null {
+export function extractTmdbId(html: string): string | null {
 	const match = html.match(/data-tmdb-id="(\d+)"/);
 	return match ? match[1] : null;
 }
