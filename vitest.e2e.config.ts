@@ -19,12 +19,10 @@ export default defineConfig({
 		// Setup file that runs before tests
 		setupFiles: ["e2e/vitest-setup.ts"],
 		// E2E tests should run sequentially to avoid rate limiting
-		pool: "forks",
-		poolOptions: {
-			forks: {
-				singleFork: true,
-			},
+		sequence: {
+			concurrent: false,
 		},
+		fileParallelism: false,
 	},
 	resolve: {
 		alias: {

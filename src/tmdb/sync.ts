@@ -140,7 +140,7 @@ async function createFilmNote(plugin: LetterboxdPlugin, movie: TMDBMovie): Promi
  * @returns true if created, false if skipped (already exists or error)
  */
 export async function syncSingleFilm(plugin: LetterboxdPlugin, tmdbId: string): Promise<boolean> {
-	const { tmdbApiKey, tmdbFolderPath, tmdbIdFrontmatterKey, tmdbLanguage } = plugin.settings;
+	const { tmdbApiKey, tmdbFolderPath, tmdbLanguage } = plugin.settings;
 
 	if (!tmdbApiKey) {
 		return false;

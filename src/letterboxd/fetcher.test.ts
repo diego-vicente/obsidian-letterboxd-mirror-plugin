@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-	extractViewingIdFromHtml,
-	extractTmdbId,
-	extractViewingIdFromRssGuid,
-} from "./fetcher";
+import { extractViewingIdFromHtml, extractTmdbId, extractViewingIdFromRssGuid } from "./fetcher";
 
 // ============================================================================
 // extractViewingIdFromHtml

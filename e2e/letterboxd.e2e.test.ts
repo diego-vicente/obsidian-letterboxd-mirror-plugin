@@ -23,7 +23,6 @@ import {
 	MockPlugin,
 	createTempVault,
 	cleanupTempVault,
-	createNoteInVault,
 	readNoteFromVault,
 	listNotesInVault,
 } from "./mock-vault";

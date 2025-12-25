@@ -224,6 +224,7 @@ letterboxd_tags: {{tags yaml=true}}
 `,
 	syncOnStartup: false,
 	syncReviewsOnly: false,
+	notificationLevel: "silent",
 	guidFrontmatterKey: "letterboxd_guid",
 	tmdbApiKey: "",
 	tmdbFolderPath: "Films",

@@ -317,7 +317,7 @@ const IMMUTABLE_VARIABLES = new Set(["guid", "tmdbId", "posterUrl"]);
  */
 function normalizeValue(value: string): string {
 	return value
-		.replace(/^["'\[\]]+|["'\[\]]+$/g, "") // Remove leading/trailing quotes and brackets
+		.replace(/^["'[\]]+|["'[\]]+$/g, "") // Remove leading/trailing quotes and brackets
 		.trim();
 }
 
