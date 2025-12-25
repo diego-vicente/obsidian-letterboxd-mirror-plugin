@@ -145,6 +145,18 @@ export class MockVault {
 	}
 
 	/**
+	 * Atomically process a file's content with a callback
+	 * This matches Obsidian's Vault.process() API
+	 */
+	async process(file: MockTFile, fn: (content: string) => string): Promise<string> {
+		const fullPath = this.getFullPath(file.path);
+		const content = fs.readFileSync(fullPath, "utf-8");
+		const newContent = fn(content);
+		fs.writeFileSync(fullPath, newContent, "utf-8");
+		return newContent;
+	}
+
+	/**
 	 * Deletes a file
 	 */
 	async delete(file: MockTFile): Promise<void> {

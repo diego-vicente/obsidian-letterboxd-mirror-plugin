@@ -91,6 +91,34 @@ export async function requestUrl(request: RequestUrlParam | string): Promise<Req
 }
 
 // ============================================================================
+// Utility functions
+// ============================================================================
+
+/**
+ * Mock implementation of Obsidian's normalizePath.
+ * Normalizes a path by removing redundant slashes and handling cross-platform issues.
+ */
+export function normalizePath(path: string): string {
+	// Replace backslashes with forward slashes
+	let normalized = path.replace(/\\/g, "/");
+
+	// Remove redundant slashes (but preserve leading slash if present)
+	normalized = normalized.replace(/\/+/g, "/");
+
+	// Remove trailing slash (unless it's just "/")
+	if (normalized.length > 1 && normalized.endsWith("/")) {
+		normalized = normalized.slice(0, -1);
+	}
+
+	// Remove leading "./" if present
+	if (normalized.startsWith("./")) {
+		normalized = normalized.slice(2);
+	}
+
+	return normalized;
+}
+
+// ============================================================================
 // Other Obsidian classes (minimal implementations)
 // ============================================================================
 
