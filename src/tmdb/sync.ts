@@ -3,6 +3,8 @@ import type LetterboxdPlugin from "../main";
 import type { TMDBMovie } from "./types";
 import { fetchTMDBMovie, templateNeedsCredits } from "./api";
 import { renderTMDBTemplate, generateTMDBFilename } from "./template";
+import { ensureFolderExists } from "../utils/vault";
+import { createFrontmatterKeyRegex } from "../utils/frontmatter";
 
 // ============================================================================
 // Types
@@ -24,25 +26,6 @@ interface ExistingFilmNote {
 // ============================================================================
 
 /**
- * Creates a regex to match TMDB ID in frontmatter
- */
-function createTmdbIdRegex(tmdbIdKey: string): RegExp {
-	const escapedKey = tmdbIdKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	return new RegExp(`^${escapedKey}:\\s*(.+)$`, "m");
-}
-
-/**
- * Ensures the target folder exists
- */
-async function ensureFolderExists(plugin: LetterboxdPlugin, folderPath: string): Promise<void> {
-	const { vault } = plugin.app;
-	const folder = vault.getAbstractFileByPath(folderPath);
-	if (!(folder instanceof TFolder)) {
-		await vault.createFolder(folderPath);
-	}
-}
-
-/**
  * Gets all markdown files in the TMDB folder with their TMDB ID
  */
 async function getExistingFilmNotes(plugin: LetterboxdPlugin): Promise<ExistingFilmNote[]> {
@@ -55,7 +38,7 @@ async function getExistingFilmNotes(plugin: LetterboxdPlugin): Promise<ExistingF
 		return notes;
 	}
 
-	const tmdbIdRegex = createTmdbIdRegex(tmdbIdFrontmatterKey);
+	const tmdbIdRegex = createFrontmatterKeyRegex(tmdbIdFrontmatterKey);
 	const files = folder.children.filter(
 		(f): f is TFile => f instanceof TFile && f.extension === "md"
 	);
@@ -244,7 +227,9 @@ export async function syncAllFilmsFromDiary(plugin: LetterboxdPlugin): Promise<T
 		}
 
 		// Extract TMDB IDs from diary notes
-		const tmdbIdRegex = /^tmdb_id:\s*(\d+)/m;
+		// Note: This uses the hardcoded key "tmdb_id" which matches the default diary note template
+		const DIARY_TMDB_ID_KEY = "tmdb_id";
+		const tmdbIdRegex = createFrontmatterKeyRegex(DIARY_TMDB_ID_KEY);
 		const tmdbIds: string[] = [];
 
 		const files = folder.children.filter(

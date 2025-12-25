@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
 	extractViewingIdFromHtml,
-	extractFilmSlug,
 	extractTmdbId,
 	extractViewingIdFromRssGuid,
 } from "./fetcher";
@@ -48,49 +47,6 @@ describe("extractViewingIdFromHtml", () => {
 	it("handles different numeric IDs", () => {
 		expect(extractViewingIdFromHtml('data-object-id="viewing:1"')).toBe("1");
 		expect(extractViewingIdFromHtml('data-object-id="viewing:999999999"')).toBe("999999999");
-	});
-});
-
-// ============================================================================
-// extractFilmSlug
-// ============================================================================
-
-describe("extractFilmSlug", () => {
-	it("extracts film slug from data-item-slug attribute", () => {
-		const html = `<div data-item-slug="the-revenant-2015" data-item-link="/film/the-revenant-2015/">`;
-		expect(extractFilmSlug(html)).toBe("the-revenant-2015");
-	});
-
-	it("returns null when no film slug found", () => {
-		const html = `<div data-item-link="/film/something/">`;
-		expect(extractFilmSlug(html)).toBeNull();
-	});
-
-	it("returns null for empty string", () => {
-		expect(extractFilmSlug("")).toBeNull();
-	});
-
-	it("handles slugs with multiple hyphens", () => {
-		const html = `<div data-item-slug="la-la-land-2016">`;
-		expect(extractFilmSlug(html)).toBe("la-la-land-2016");
-	});
-
-	it("handles slugs with numbers", () => {
-		const html = `<div data-item-slug="2001-a-space-odyssey">`;
-		expect(extractFilmSlug(html)).toBe("2001-a-space-odyssey");
-	});
-
-	it("extracts from complex HTML", () => {
-		const html = `
-			<div class="react-component" 
-				data-component-class="LazyPoster"
-				data-item-name="The Revenant (2015)" 
-				data-item-slug="the-revenant-2015" 
-				data-item-link="/film/the-revenant-2015/"
-				data-film-id="207224">
-			</div>
-		`;
-		expect(extractFilmSlug(html)).toBe("the-revenant-2015");
 	});
 });
 

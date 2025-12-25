@@ -2,7 +2,7 @@
  * Letterboxd Page Fetcher
  *
  * Fetches and extracts data from Letterboxd pages:
- * - User review page: viewing ID, film slug
+ * - User review page: viewing ID
  * - Main film page: TMDB ID
  */
 
@@ -14,8 +14,6 @@ import { requestUrl } from "obsidian";
 export interface LetterboxdPageData {
 	/** Viewing/diary entry ID (e.g., "1093163294") */
 	viewingId: string;
-	/** Film slug for constructing URLs (e.g., "the-revenant-2015") */
-	filmSlug: string;
 	/** TMDB movie ID (e.g., "281957") */
 	tmdbId: string;
 }
@@ -35,8 +33,9 @@ export function extractViewingIdFromHtml(html: string): string | null {
 /**
  * Extracts the film slug from a Letterboxd user review page HTML
  * Looks for: data-item-slug="the-revenant-2015"
+ * Used internally to construct film page URL for TMDB ID extraction.
  */
-export function extractFilmSlug(html: string): string | null {
+function extractFilmSlug(html: string): string | null {
 	const match = html.match(/data-item-slug="([^"]+)"/);
 	return match ? match[1] : null;
 }
@@ -105,14 +104,12 @@ export async function fetchLetterboxdPageData(
 			// Still return partial data - TMDB ID might not be available for all films
 			return {
 				viewingId,
-				filmSlug,
 				tmdbId: "",
 			};
 		}
 
 		return {
 			viewingId,
-			filmSlug,
 			tmdbId,
 		};
 	} catch (error) {

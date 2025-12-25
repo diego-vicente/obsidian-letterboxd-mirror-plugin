@@ -121,12 +121,6 @@ export default class LetterboxdPlugin extends Plugin {
 				let diaryCSV: string | null = null;
 				let reviewsCSV: string | null = null;
 
-				// Debug: log all files found
-				console.log(
-					"Letterboxd: Files in selected folder:",
-					Array.from(files).map((f) => f.webkitRelativePath || f.name)
-				);
-
 				// Find diary.csv and reviews.csv at the ROOT of the selected folder
 				// webkitRelativePath format: "folderName/file.csv" for root files
 				// vs "folderName/subfolder/file.csv" for nested files

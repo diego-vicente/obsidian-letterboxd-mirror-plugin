@@ -6,6 +6,8 @@ import { fetchLetterboxdRSS } from "../letterboxd/parser";
 import { parseLetterboxdExport } from "../letterboxd/csv-parser";
 import { getExistingTmdbIds } from "../tmdb/sync";
 import { renderTemplate, generateFilename } from "./template";
+import { ensureFolderExists } from "../utils/vault";
+import { createFrontmatterKeyRegex } from "../utils/frontmatter";
 
 // ============================================================================
 // Types
@@ -39,14 +41,6 @@ interface ExistingNote {
 // ============================================================================
 
 /**
- * Creates a regex to match GUID in frontmatter
- */
-function createGuidRegex(guidKey: string): RegExp {
-	const escapedKey = guidKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	return new RegExp(`^${escapedKey}:\\s*(.+)$`, "m");
-}
-
-/**
  * Converts a filename template to a regex pattern for matching
  * e.g., "{{watchedDate}} - {{filmTitle}}" -> /^(.+) - (.+)$/
  */
@@ -58,17 +52,6 @@ function filenameTemplateToRegex(template: string): RegExp {
 	pattern = pattern.replace(/\\\{\\\{[^}]+\\\}\\\}/g, "(.+)");
 
 	return new RegExp(`^${pattern}$`);
-}
-
-/**
- * Ensures the target folder exists
- */
-async function ensureFolderExists(plugin: LetterboxdPlugin, folderPath: string): Promise<void> {
-	const { vault } = plugin.app;
-	const folder = vault.getAbstractFileByPath(folderPath);
-	if (!(folder instanceof TFolder)) {
-		await vault.createFolder(folderPath);
-	}
 }
 
 /**
@@ -84,7 +67,7 @@ async function getExistingNotes(plugin: LetterboxdPlugin): Promise<ExistingNote[
 		return notes;
 	}
 
-	const guidRegex = createGuidRegex(guidFrontmatterKey);
+	const guidRegex = createFrontmatterKeyRegex(guidFrontmatterKey);
 	const files = folder.children.filter(
 		(f): f is TFile => f instanceof TFile && f.extension === "md"
 	);
@@ -309,13 +292,6 @@ function isEmptyValue(value: string): boolean {
 }
 
 /**
- * Checks if the existing tags value contains the pending sentinel
- */
-function hasPendingSentinel(existingValue: string): boolean {
-	return existingValue.includes(TAGS_PENDING_FROM_RSS);
-}
-
-/**
  * Checks if a new value should replace the existing value
  * - Don't replace immutable fields (guid, tmdbId, posterUrl)
  * - Don't replace if new value is empty/null (EXCEPT tags with sentinel)
@@ -487,8 +463,6 @@ export async function importFromCSV(
 			return result;
 		}
 
-		const entries = allEntries;
-
 		await ensureFolderExists(plugin, folderPath);
 
 		// Get existing notes
@@ -497,7 +471,7 @@ export async function importFromCSV(
 
 		// Validate first - check for ambiguous matches
 		const validationErrors = await validateCSVImport(
-			entries,
+			allEntries,
 			existingNotes,
 			filenameRegex,
 			plugin.settings
@@ -516,7 +490,7 @@ export async function importFromCSV(
 		const existingTmdbIds = await getExistingTmdbIds(plugin);
 
 		// Process entries
-		for (const entry of entries) {
+		for (const entry of allEntries) {
 			try {
 				const matchingNote = findMatchingNote(
 					entry,

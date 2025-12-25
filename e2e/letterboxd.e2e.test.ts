@@ -31,7 +31,6 @@ import { fetchLetterboxdRSS } from "../src/letterboxd/parser";
 import {
 	fetchLetterboxdPageData,
 	extractViewingIdFromHtml,
-	extractFilmSlug,
 	extractTmdbId,
 } from "../src/letterboxd/fetcher";
 import { parseLetterboxdExport } from "../src/letterboxd/csv-parser";
@@ -46,14 +45,13 @@ import type LetterboxdPlugin from "../src/main";
 
 describe("E2E 6: Letterboxd Page Fetcher", () => {
 	it("extracts viewing ID from Die Hard diary page", async () => {
-		const { letterboxdUri, viewingId, tmdbId, filmTitle } = EXPECTED_ENTRIES.dieHard;
+		const { letterboxdUri, viewingId, tmdbId } = EXPECTED_ENTRIES.dieHard;
 
 		const result = await fetchLetterboxdPageData(letterboxdUri);
 
 		expect(result).not.toBeNull();
 		expect(result!.viewingId).toBe(viewingId);
 		expect(result!.tmdbId).toBe(tmdbId);
-		expect(result!.filmSlug).toBe("die-hard");
 	});
 
 	it("extracts viewing ID from One Battle After Another diary page", async () => {
@@ -64,18 +62,15 @@ describe("E2E 6: Letterboxd Page Fetcher", () => {
 		expect(result).not.toBeNull();
 		expect(result!.viewingId).toBe(viewingId);
 		expect(result!.tmdbId).toBe(tmdbId);
-		expect(result!.filmSlug).toBe("one-battle-after-another");
 	});
 
-	it("extracts data attributes from real HTML", async () => {
-		// Fetch real page and test extraction functions
+	it("extracts viewing ID from real HTML", async () => {
+		// Fetch real page and test extraction function
 		const { text } = await fetchUrl(EXPECTED_ENTRIES.dieHard.letterboxdUri);
 
 		const viewingId = extractViewingIdFromHtml(text);
-		const filmSlug = extractFilmSlug(text);
 
 		expect(viewingId).toBe(EXPECTED_ENTRIES.dieHard.viewingId);
-		expect(filmSlug).toBe("die-hard");
 	});
 
 	it("extracts TMDB ID from real film page", async () => {

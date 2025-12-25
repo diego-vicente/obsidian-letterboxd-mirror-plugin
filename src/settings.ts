@@ -1,6 +1,9 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, debounce } from "obsidian";
 import type LetterboxdPlugin from "./main";
 import type { LetterboxdSettings } from "./types";
+
+/** Debounce delay for saving settings (ms) */
+const SETTINGS_SAVE_DEBOUNCE_MS = 500;
 
 /** Default note template - loaded from templates/default-note.md at build time */
 const DEFAULT_NOTE_TEMPLATE = `---
@@ -106,10 +109,17 @@ export const DEFAULT_SETTINGS: LetterboxdSettings = {
 
 export class LetterboxdSettingTab extends PluginSettingTab {
 	plugin: LetterboxdPlugin;
+	private debouncedSave: () => void;
 
 	constructor(app: App, plugin: LetterboxdPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+		// Create debounced save function to avoid excessive disk writes on each keystroke
+		this.debouncedSave = debounce(
+			() => this.plugin.saveSettings(),
+			SETTINGS_SAVE_DEBOUNCE_MS,
+			true
+		);
 	}
 
 	display(): void {
@@ -133,7 +143,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.username)
 					.onChange(async (value) => {
 						this.plugin.settings.username = value.trim();
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					})
 			);
 
@@ -146,7 +156,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.folderPath)
 					.onChange(async (value) => {
 						this.plugin.settings.folderPath = value.trim() || DEFAULT_FOLDER_PATH;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					})
 			);
 
@@ -162,7 +172,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.filenameTemplate =
 							value.trim() || DEFAULT_FILENAME_TEMPLATE;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					})
 			);
 
@@ -172,7 +182,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.syncOnStartup).onChange(async (value) => {
 					this.plugin.settings.syncOnStartup = value;
-					await this.plugin.saveSettings();
+					this.debouncedSave();
 				})
 			);
 
@@ -182,7 +192,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.syncReviewsOnly).onChange(async (value) => {
 					this.plugin.settings.syncReviewsOnly = value;
-					await this.plugin.saveSettings();
+					this.debouncedSave();
 				})
 			);
 
@@ -197,7 +207,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.guidFrontmatterKey)
 					.onChange(async (value) => {
 						this.plugin.settings.guidFrontmatterKey = value.trim() || DEFAULT_GUID_KEY;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					})
 			);
 
@@ -212,7 +222,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.noteTemplate)
 					.onChange(async (value) => {
 						this.plugin.settings.noteTemplate = value || DEFAULT_NOTE_TEMPLATE;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					});
 				text.inputEl.rows = 20;
 				text.inputEl.cols = 60;
@@ -228,7 +238,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setWarning()
 					.onClick(async () => {
 						this.plugin.settings.noteTemplate = DEFAULT_NOTE_TEMPLATE;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 						this.display(); // Re-render to show updated value
 					})
 			);
@@ -253,7 +263,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.tmdbApiKey)
 					.onChange(async (value) => {
 						this.plugin.settings.tmdbApiKey = value.trim();
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					})
 			);
 
@@ -267,7 +277,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.tmdbFolderPath =
 							value.trim() || DEFAULT_TMDB_FOLDER_PATH;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					})
 			);
 
@@ -283,7 +293,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.tmdbFilenameTemplate =
 							value.trim() || DEFAULT_TMDB_FILENAME_TEMPLATE;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					})
 			);
 
@@ -296,7 +306,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.tmdbLanguage)
 					.onChange(async (value) => {
 						this.plugin.settings.tmdbLanguage = value.trim() || DEFAULT_TMDB_LANGUAGE;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					})
 			);
 
@@ -311,7 +321,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.tmdbNoteTemplate)
 					.onChange(async (value) => {
 						this.plugin.settings.tmdbNoteTemplate = value || DEFAULT_TMDB_NOTE_TEMPLATE;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 					});
 				text.inputEl.rows = 20;
 				text.inputEl.cols = 60;
@@ -327,7 +337,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setWarning()
 					.onClick(async () => {
 						this.plugin.settings.tmdbNoteTemplate = DEFAULT_TMDB_NOTE_TEMPLATE;
-						await this.plugin.saveSettings();
+						this.debouncedSave();
 						this.display(); // Re-render to show updated value
 					})
 			);
