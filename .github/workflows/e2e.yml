@@ -1,0 +1,54 @@
+name: E2E Tests
+
+on:
+    push:
+        branches: [master]
+    pull_request_review:
+        types: [submitted]
+
+# Cancel in-progress runs when a new commit is pushed
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    e2e:
+        name: E2E Tests
+        runs-on: ubuntu-latest
+        environment: CI Environment
+        # Run on push to master, or when a PR review is approved
+        if: |
+            github.event_name == 'push' ||
+            (github.event_name == 'pull_request_review' && github.event.review.state == 'approved')
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  # For PR reviews, checkout the PR branch
+                  ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Validate TMDB API key is configured
+              run: |
+                  if [ -z "$TMDB_API_KEY" ]; then
+                    echo "Error: TMDB_API_KEY secret is not configured"
+                    echo "Please add TMDB_API_KEY to your repository secrets"
+                    exit 1
+                  fi
+                  echo "TMDB_API_KEY is configured"
+              env:
+                  TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+
+            - name: Run E2E tests
+              run: npm run test:e2e
+              env:
+                  TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
