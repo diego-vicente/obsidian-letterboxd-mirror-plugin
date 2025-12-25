@@ -22,21 +22,21 @@ export default class LetterboxdPlugin extends Plugin {
 
 		// Register sync command
 		this.addCommand({
-			id: "letterboxd-sync",
+			id: "sync-diary",
 			name: "Sync Letterboxd diary",
 			callback: () => this.syncDiary(),
 		});
 
 		// Register CSV import command
 		this.addCommand({
-			id: "letterboxd-import-csv",
+			id: "import-csv",
 			name: "Import from Letterboxd CSV export",
 			callback: () => this.importCSVFolder(),
 		});
 
 		// Register TMDB sync command
 		this.addCommand({
-			id: "tmdb-sync-films",
+			id: "sync-films",
 			name: "Sync TMDB film data",
 			callback: () => this.syncTMDBFilms(),
 		});

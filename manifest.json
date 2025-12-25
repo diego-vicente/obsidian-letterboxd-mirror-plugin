@@ -2,7 +2,7 @@
 	"id": "letterboxd-mirror",
 	"name": "Letterboxd Mirror",
 	"version": "0.1.0",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.10.6",
 	"description": "Sync your Letterboxd diary entries as notes",
 	"author": "Diego Vicente",
 	"authorUrl": "https://diego.codes",
