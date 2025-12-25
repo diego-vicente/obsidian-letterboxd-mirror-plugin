@@ -126,9 +126,6 @@ export function renderTMDBTemplate(template: string, movie: TMDBMovie): string {
  * @param movie - TMDB movie data
  * @returns Safe filename (without .md extension)
  */
-export function generateTMDBFilename(
-	filenameTemplate: string,
-	movie: TMDBMovie
-): string {
+export function generateTMDBFilename(filenameTemplate: string, movie: TMDBMovie): string {
 	return tmdbEngine.generateFilename(filenameTemplate, movie);
 }

@@ -122,28 +122,35 @@ export default class LetterboxdPlugin extends Plugin {
 				let reviewsCSV: string | null = null;
 
 				// Debug: log all files found
-				console.log("Letterboxd: Files in selected folder:", 
-					Array.from(files).map(f => f.webkitRelativePath || f.name));
+				console.log(
+					"Letterboxd: Files in selected folder:",
+					Array.from(files).map((f) => f.webkitRelativePath || f.name)
+				);
 
 				// Find diary.csv and reviews.csv at the ROOT of the selected folder
 				// webkitRelativePath format: "folderName/file.csv" for root files
 				// vs "folderName/subfolder/file.csv" for nested files
 				for (let i = 0; i < files.length; i++) {
 					const file = files[i];
-					const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || "";
+					const relativePath =
+						(file as File & { webkitRelativePath?: string }).webkitRelativePath || "";
 					const pathParts = relativePath.split("/");
-					
+
 					// Only process files at root level (exactly 2 parts: folder/file.csv)
 					if (pathParts.length !== 2) continue;
-					
+
 					const filename = file.name.toLowerCase();
 
 					if (filename === DIARY_CSV_FILENAME) {
 						diaryCSV = await file.text();
-						console.log(`Letterboxd: Found diary.csv at root (${diaryCSV.length} chars)`);
+						console.log(
+							`Letterboxd: Found diary.csv at root (${diaryCSV.length} chars)`
+						);
 					} else if (filename === REVIEWS_CSV_FILENAME) {
 						reviewsCSV = await file.text();
-						console.log(`Letterboxd: Found reviews.csv at root (${reviewsCSV.length} chars)`);
+						console.log(
+							`Letterboxd: Found reviews.csv at root (${reviewsCSV.length} chars)`
+						);
 					}
 				}
 
@@ -160,13 +167,13 @@ export default class LetterboxdPlugin extends Plugin {
 					const tmdbResult = await syncFilmsFromTMDB(this, csvResult.newTmdbIds);
 					if (tmdbResult.created > 0 || tmdbResult.errors > 0) {
 						const parts: string[] = [];
-						if (tmdbResult.created > 0) parts.push(`${tmdbResult.created} films created`);
+						if (tmdbResult.created > 0)
+							parts.push(`${tmdbResult.created} films created`);
 						if (tmdbResult.skipped > 0) parts.push(`${tmdbResult.skipped} skipped`);
 						if (tmdbResult.errors > 0) parts.push(`${tmdbResult.errors} errors`);
 						new Notice(`TMDB: ${parts.join(", ")}`);
 					}
 				}
-
 			} catch (error) {
 				const message = error instanceof Error ? error.message : "Unknown error";
 				new Notice(`Letterboxd: Failed to read CSV files - ${message}`);

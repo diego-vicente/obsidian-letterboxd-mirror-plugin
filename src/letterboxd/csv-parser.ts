@@ -1,13 +1,13 @@
 /**
  * Letterboxd CSV Export Parser
- * 
+ *
  * Letterboxd exports contain multiple CSV files:
  * - diary.csv: Date, Name, Year, Letterboxd URI, Rating, Rewatch, Tags, Watched Date
  * - reviews.csv: Date, Name, Year, Letterboxd URI, Rating, Rewatch, Review, Tags, Watched Date
- * 
+ *
  * reviews.csv is a superset - contains entries that have reviews.
  * We merge both to get: all diary entries + reviews where available.
- * 
+ *
  * After parsing, entries are enriched by fetching Letterboxd pages to get:
  * - Viewing ID (for matching with RSS entries)
  * - TMDB ID (for creating Film notes)
@@ -199,16 +199,22 @@ function toLetterboxdEntry(data: EnrichedCSVEntryData): LetterboxdEntry {
 /**
  * Callback for progress reporting during CSV enrichment
  */
-export type EnrichmentProgressCallback = (current: number, total: number, filmTitle: string) => void;
+export type EnrichmentProgressCallback = (
+	current: number,
+	total: number,
+	filmTitle: string
+) => void;
 
 /**
  * Enriches a single CSV entry by fetching data from Letterboxd pages
  */
 async function enrichEntry(data: CSVEntryData): Promise<EnrichedCSVEntryData | null> {
 	const pageData = await fetchLetterboxdPageData(data.uri);
-	
+
 	if (!pageData) {
-		console.warn(`Letterboxd: Failed to enrich "${data.filmTitle}" - could not fetch page data`);
+		console.warn(
+			`Letterboxd: Failed to enrich "${data.filmTitle}" - could not fetch page data`
+		);
 		return null;
 	}
 
@@ -222,12 +228,12 @@ async function enrichEntry(data: CSVEntryData): Promise<EnrichedCSVEntryData | n
 /**
  * Parses Letterboxd export and returns LetterboxdEntry array
  * Merges diary.csv and reviews.csv - reviews.csv takes precedence for review text
- * 
+ *
  * This is an async function that fetches additional data from Letterboxd pages
  * for each entry to get the viewing ID and TMDB ID.
- * 
+ *
  * @param diaryCSV - Contents of diary.csv
- * @param reviewsCSV - Contents of reviews.csv  
+ * @param reviewsCSV - Contents of reviews.csv
  * @param onProgress - Optional callback for progress reporting
  * @returns Array of enriched LetterboxdEntry objects
  */
@@ -272,22 +278,24 @@ export async function parseLetterboxdExport(
 
 	// Enrich entries by fetching Letterboxd pages
 	const enrichedEntries: LetterboxdEntry[] = [];
-	
+
 	for (let i = 0; i < entries.length; i++) {
 		const entry = entries[i];
-		
+
 		if (onProgress) {
 			onProgress(i + 1, totalEntries, entry.filmTitle);
 		}
 
 		const enrichedData = await enrichEntry(entry);
-		
+
 		if (enrichedData) {
 			enrichedEntries.push(toLetterboxdEntry(enrichedData));
 		}
 	}
 
-	console.log(`Letterboxd: Successfully enriched ${enrichedEntries.length}/${totalEntries} entries`);
+	console.log(
+		`Letterboxd: Successfully enriched ${enrichedEntries.length}/${totalEntries} entries`
+	);
 
 	return enrichedEntries;
 }

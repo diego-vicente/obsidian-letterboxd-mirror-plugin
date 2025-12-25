@@ -34,10 +34,7 @@ function createTmdbIdRegex(tmdbIdKey: string): RegExp {
 /**
  * Ensures the target folder exists
  */
-async function ensureFolderExists(
-	plugin: LetterboxdPlugin,
-	folderPath: string
-): Promise<void> {
+async function ensureFolderExists(plugin: LetterboxdPlugin, folderPath: string): Promise<void> {
 	const { vault } = plugin.app;
 	const folder = vault.getAbstractFileByPath(folderPath);
 	if (!(folder instanceof TFolder)) {
@@ -48,9 +45,7 @@ async function ensureFolderExists(
 /**
  * Gets all markdown files in the TMDB folder with their TMDB ID
  */
-async function getExistingFilmNotes(
-	plugin: LetterboxdPlugin
-): Promise<ExistingFilmNote[]> {
+async function getExistingFilmNotes(plugin: LetterboxdPlugin): Promise<ExistingFilmNote[]> {
 	const { vault } = plugin.app;
 	const { tmdbFolderPath, tmdbIdFrontmatterKey } = plugin.settings;
 	const notes: ExistingFilmNote[] = [];
@@ -85,27 +80,19 @@ async function getExistingFilmNotes(
  * Gets a Set of all existing TMDB IDs from Film notes
  * Used to determine which films need to be fetched from TMDB
  */
-export async function getExistingTmdbIds(
-	plugin: LetterboxdPlugin
-): Promise<Set<string>> {
+export async function getExistingTmdbIds(plugin: LetterboxdPlugin): Promise<Set<string>> {
 	const notes = await getExistingFilmNotes(plugin);
 	return new Set(
-		notes
-			.map((n) => n.tmdbId)
-			.filter((id): id is string => id !== null && id !== "")
+		notes.map((n) => n.tmdbId).filter((id): id is string => id !== null && id !== "")
 	);
 }
 
 /**
  * Creates a Film note for a TMDB movie
  */
-async function createFilmNote(
-	plugin: LetterboxdPlugin,
-	movie: TMDBMovie
-): Promise<void> {
+async function createFilmNote(plugin: LetterboxdPlugin, movie: TMDBMovie): Promise<void> {
 	const { vault } = plugin.app;
-	const { tmdbFolderPath, tmdbFilenameTemplate, tmdbNoteTemplate } =
-		plugin.settings;
+	const { tmdbFolderPath, tmdbFilenameTemplate, tmdbNoteTemplate } = plugin.settings;
 
 	const filename = generateTMDBFilename(tmdbFilenameTemplate, movie);
 	const content = renderTMDBTemplate(tmdbNoteTemplate, movie);
@@ -114,10 +101,7 @@ async function createFilmNote(
 	const existingFile = vault.getAbstractFileByPath(filePath);
 	if (existingFile) {
 		// Add TMDB ID suffix to avoid collision (different movies with same title/year)
-		await vault.create(
-			`${tmdbFolderPath}/${filename} (${movie.tmdbId}).md`,
-			content
-		);
+		await vault.create(`${tmdbFolderPath}/${filename} (${movie.tmdbId}).md`, content);
 	} else {
 		await vault.create(filePath, content);
 	}
@@ -133,12 +117,8 @@ async function createFilmNote(
  * @param tmdbId - TMDB movie ID
  * @returns true if created, false if skipped (already exists or error)
  */
-export async function syncSingleFilm(
-	plugin: LetterboxdPlugin,
-	tmdbId: string
-): Promise<boolean> {
-	const { tmdbApiKey, tmdbFolderPath, tmdbIdFrontmatterKey, tmdbLanguage } =
-		plugin.settings;
+export async function syncSingleFilm(plugin: LetterboxdPlugin, tmdbId: string): Promise<boolean> {
+	const { tmdbApiKey, tmdbFolderPath, tmdbIdFrontmatterKey, tmdbLanguage } = plugin.settings;
 
 	if (!tmdbApiKey) {
 		return false;
@@ -153,9 +133,7 @@ export async function syncSingleFilm(
 
 		// Check if note already exists
 		const existingNotes = await getExistingFilmNotes(plugin);
-		const existingIds = new Set(
-			existingNotes.map((n) => n.tmdbId).filter(Boolean)
-		);
+		const existingIds = new Set(existingNotes.map((n) => n.tmdbId).filter(Boolean));
 
 		if (existingIds.has(tmdbId)) {
 			return false; // Already exists
@@ -207,9 +185,7 @@ export async function syncFilmsFromTMDB(
 
 		// Get existing notes to avoid duplicates
 		const existingNotes = await getExistingFilmNotes(plugin);
-		const existingIds = new Set(
-			existingNotes.map((n) => n.tmdbId).filter(Boolean)
-		);
+		const existingIds = new Set(existingNotes.map((n) => n.tmdbId).filter(Boolean));
 
 		// Process each ID
 		for (const tmdbId of validIds) {
@@ -219,7 +195,12 @@ export async function syncFilmsFromTMDB(
 			}
 
 			try {
-				const movie = await fetchTMDBMovie(tmdbId, tmdbApiKey, tmdbLanguage, includeCredits);
+				const movie = await fetchTMDBMovie(
+					tmdbId,
+					tmdbApiKey,
+					tmdbLanguage,
+					includeCredits
+				);
 				await createFilmNote(plugin, movie);
 				result.created++;
 				// Add to set to handle duplicates within the batch
@@ -242,9 +223,7 @@ export async function syncFilmsFromTMDB(
  * @param plugin - Plugin instance
  * @returns Sync result with counts
  */
-export async function syncAllFilmsFromDiary(
-	plugin: LetterboxdPlugin
-): Promise<TMDBSyncResult> {
+export async function syncAllFilmsFromDiary(plugin: LetterboxdPlugin): Promise<TMDBSyncResult> {
 	const result: TMDBSyncResult = { created: 0, skipped: 0, errors: 0 };
 	const { tmdbApiKey, folderPath } = plugin.settings;
 

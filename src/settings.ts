@@ -152,13 +152,16 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Filename template")
-			.setDesc("Template for note filenames. Available: {{filmTitle}}, {{filmYear}}, {{watchedDate}}, {{tmdbId}}")
+			.setDesc(
+				"Template for note filenames. Available: {{filmTitle}}, {{filmYear}}, {{watchedDate}}, {{tmdbId}}"
+			)
 			.addText((text) =>
 				text
 					.setPlaceholder(DEFAULT_FILENAME_TEMPLATE)
 					.setValue(this.plugin.settings.filenameTemplate)
 					.onChange(async (value) => {
-						this.plugin.settings.filenameTemplate = value.trim() || DEFAULT_FILENAME_TEMPLATE;
+						this.plugin.settings.filenameTemplate =
+							value.trim() || DEFAULT_FILENAME_TEMPLATE;
 						await this.plugin.saveSettings();
 					})
 			);
@@ -167,29 +170,27 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 			.setName("Sync on startup")
 			.setDesc("Automatically sync diary entries when Obsidian starts")
 			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.syncOnStartup)
-					.onChange(async (value) => {
-						this.plugin.settings.syncOnStartup = value;
-						await this.plugin.saveSettings();
-					})
+				toggle.setValue(this.plugin.settings.syncOnStartup).onChange(async (value) => {
+					this.plugin.settings.syncOnStartup = value;
+					await this.plugin.saveSettings();
+				})
 			);
 
 		new Setting(containerEl)
 			.setName("Reviews only")
 			.setDesc("Only sync entries that have a review (skip watch-only logs)")
 			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.syncReviewsOnly)
-					.onChange(async (value) => {
-						this.plugin.settings.syncReviewsOnly = value;
-						await this.plugin.saveSettings();
-					})
+				toggle.setValue(this.plugin.settings.syncReviewsOnly).onChange(async (value) => {
+					this.plugin.settings.syncReviewsOnly = value;
+					await this.plugin.saveSettings();
+				})
 			);
 
 		new Setting(containerEl)
 			.setName("GUID frontmatter key")
-			.setDesc("Frontmatter attribute used to store the Letterboxd entry ID (for deduplication)")
+			.setDesc(
+				"Frontmatter attribute used to store the Letterboxd entry ID (for deduplication)"
+			)
 			.addText((text) =>
 				text
 					.setPlaceholder(DEFAULT_GUID_KEY)
@@ -203,10 +204,11 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 		// Note template (textarea)
 		new Setting(containerEl)
 			.setName("Note template")
-			.setDesc("Template for note content. Available variables: {{filmTitle}}, {{filmYear}}, {{userRatingNoOver5}}, {{userRatingNoOver10}}, {{userRatingStars}}, {{watchedDate}}, {{watchedDatetime}}, {{rewatch}}, {{link}}, {{tmdbId}}, {{posterUrl}}, {{guid}}, {{review}}, {{pubDate}}, {{containsSpoilers}}, {{tags}}. Conditionals: {{#if rewatch}}...{{/if}}")
+			.setDesc(
+				"Template for note content. Available variables: {{filmTitle}}, {{filmYear}}, {{userRatingNoOver5}}, {{userRatingNoOver10}}, {{userRatingStars}}, {{watchedDate}}, {{watchedDatetime}}, {{rewatch}}, {{link}}, {{tmdbId}}, {{posterUrl}}, {{guid}}, {{review}}, {{pubDate}}, {{containsSpoilers}}, {{tags}}. Conditionals: {{#if rewatch}}...{{/if}}"
+			)
 			.addTextArea((text) => {
-				text
-					.setPlaceholder(DEFAULT_NOTE_TEMPLATE)
+				text.setPlaceholder(DEFAULT_NOTE_TEMPLATE)
 					.setValue(this.plugin.settings.noteTemplate)
 					.onChange(async (value) => {
 						this.plugin.settings.noteTemplate = value || DEFAULT_NOTE_TEMPLATE;
@@ -263,20 +265,24 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setPlaceholder(DEFAULT_TMDB_FOLDER_PATH)
 					.setValue(this.plugin.settings.tmdbFolderPath)
 					.onChange(async (value) => {
-						this.plugin.settings.tmdbFolderPath = value.trim() || DEFAULT_TMDB_FOLDER_PATH;
+						this.plugin.settings.tmdbFolderPath =
+							value.trim() || DEFAULT_TMDB_FOLDER_PATH;
 						await this.plugin.saveSettings();
 					})
 			);
 
 		new Setting(containerEl)
 			.setName("Film filename template")
-			.setDesc("Template for Film note filenames. Available: {{title}}, {{originalTitle}}, {{year}}, {{tmdbId}}, {{imdbId}}")
+			.setDesc(
+				"Template for Film note filenames. Available: {{title}}, {{originalTitle}}, {{year}}, {{tmdbId}}, {{imdbId}}"
+			)
 			.addText((text) =>
 				text
 					.setPlaceholder(DEFAULT_TMDB_FILENAME_TEMPLATE)
 					.setValue(this.plugin.settings.tmdbFilenameTemplate)
 					.onChange(async (value) => {
-						this.plugin.settings.tmdbFilenameTemplate = value.trim() || DEFAULT_TMDB_FILENAME_TEMPLATE;
+						this.plugin.settings.tmdbFilenameTemplate =
+							value.trim() || DEFAULT_TMDB_FILENAME_TEMPLATE;
 						await this.plugin.saveSettings();
 					})
 			);
@@ -297,10 +303,11 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 		// Film note template (textarea)
 		new Setting(containerEl)
 			.setName("Film note template")
-			.setDesc("Template for Film note content. Available: {{title}}, {{originalTitle}}, {{year}}, {{releaseDate}}, {{runtime}}, {{runtimeFormatted}}, {{overview}}, {{tagline}}, {{genres}}, {{genreList}}, {{tmdbRating}}, {{tmdbVoteCount}}, {{budget}}, {{revenue}}, {{imdbId}}, {{tmdbId}}, {{tmdbUrl}}, {{posterUrlXXS/XS/S/M/L/XL/OG}}, {{backdropUrlS/M/L/OG}}, {{productionCompanies}}, {{productionCompanyList}}, {{spokenLanguages}}, {{spokenLanguageList}}, {{collection}}. Conditionals: {{#if tagline}}...{{/if}}")
+			.setDesc(
+				"Template for Film note content. Available: {{title}}, {{originalTitle}}, {{year}}, {{releaseDate}}, {{runtime}}, {{runtimeFormatted}}, {{overview}}, {{tagline}}, {{genres}}, {{genreList}}, {{tmdbRating}}, {{tmdbVoteCount}}, {{budget}}, {{revenue}}, {{imdbId}}, {{tmdbId}}, {{tmdbUrl}}, {{posterUrlXXS/XS/S/M/L/XL/OG}}, {{backdropUrlS/M/L/OG}}, {{productionCompanies}}, {{productionCompanyList}}, {{spokenLanguages}}, {{spokenLanguageList}}, {{collection}}. Conditionals: {{#if tagline}}...{{/if}}"
+			)
 			.addTextArea((text) => {
-				text
-					.setPlaceholder(DEFAULT_TMDB_NOTE_TEMPLATE)
+				text.setPlaceholder(DEFAULT_TMDB_NOTE_TEMPLATE)
 					.setValue(this.plugin.settings.tmdbNoteTemplate)
 					.onChange(async (value) => {
 						this.plugin.settings.tmdbNoteTemplate = value || DEFAULT_TMDB_NOTE_TEMPLATE;

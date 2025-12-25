@@ -54,15 +54,11 @@ describe("ratingToStars", () => {
 
 describe("extractViewingIdFromRssGuid", () => {
 	it("extracts ID from letterboxd-review-{id} format", () => {
-		expect(extractViewingIdFromRssGuid("letterboxd-review-1093163294")).toBe(
-			"1093163294"
-		);
+		expect(extractViewingIdFromRssGuid("letterboxd-review-1093163294")).toBe("1093163294");
 	});
 
 	it("extracts ID from letterboxd-watch-{id} format", () => {
-		expect(extractViewingIdFromRssGuid("letterboxd-watch-456789")).toBe(
-			"456789"
-		);
+		expect(extractViewingIdFromRssGuid("letterboxd-watch-456789")).toBe("456789");
 	});
 
 	it("returns null for unrecognized format", () => {
@@ -98,8 +94,7 @@ describe("extractPosterUrl", () => {
 	});
 
 	it("handles complex img tag with multiple attributes", () => {
-		const html =
-			'<p><img src="https://example.com/poster.jpg" alt="Poster" width="150"/></p>';
+		const html = '<p><img src="https://example.com/poster.jpg" alt="Poster" width="150"/></p>';
 		expect(extractPosterUrl(html)).toBe("https://example.com/poster.jpg");
 	});
 
@@ -124,8 +119,7 @@ describe("extractReviewText", () => {
 	});
 
 	it("removes spoiler warning", () => {
-		const html =
-			"<p><em>This review may contain spoilers.</em></p><p>Actual review</p>";
+		const html = "<p><em>This review may contain spoilers.</em></p><p>Actual review</p>";
 		expect(extractReviewText(html)).toBe("Actual review");
 	});
 
@@ -136,9 +130,7 @@ describe("extractReviewText", () => {
 
 	it("converts paragraph breaks to newlines", () => {
 		const html = "<p>First paragraph.</p><p>Second paragraph.</p>";
-		expect(extractReviewText(html)).toBe(
-			"First paragraph.\n\nSecond paragraph."
-		);
+		expect(extractReviewText(html)).toBe("First paragraph.\n\nSecond paragraph.");
 	});
 
 	it("converts br tags to newlines", () => {

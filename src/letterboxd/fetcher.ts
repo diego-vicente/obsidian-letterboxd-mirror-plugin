@@ -1,6 +1,6 @@
 /**
  * Letterboxd Page Fetcher
- * 
+ *
  * Fetches and extracts data from Letterboxd pages:
  * - User review page: viewing ID, film slug
  * - Main film page: TMDB ID
@@ -69,15 +69,17 @@ async function fetchPage(url: string): Promise<string> {
 
 /**
  * Fetches data from a Letterboxd diary entry URL (boxd.it short URL)
- * 
+ *
  * Makes 2 requests:
  * 1. Fetch user review page (following boxd.it redirect) → viewing ID + film slug
  * 2. Fetch main film page → TMDB ID
- * 
+ *
  * @param letterboxdUri - The boxd.it URL from CSV (e.g., "https://boxd.it/bVO16l")
  * @returns Extracted page data or null if extraction fails
  */
-export async function fetchLetterboxdPageData(letterboxdUri: string): Promise<LetterboxdPageData | null> {
+export async function fetchLetterboxdPageData(
+	letterboxdUri: string
+): Promise<LetterboxdPageData | null> {
 	try {
 		// Step 1: Fetch user review page (boxd.it redirects automatically)
 		const reviewPageHtml = await fetchPage(letterboxdUri);
@@ -86,7 +88,9 @@ export async function fetchLetterboxdPageData(letterboxdUri: string): Promise<Le
 		const filmSlug = extractFilmSlug(reviewPageHtml);
 
 		if (!viewingId || !filmSlug) {
-			console.warn(`Letterboxd: Could not extract viewing ID or film slug from ${letterboxdUri}`);
+			console.warn(
+				`Letterboxd: Could not extract viewing ID or film slug from ${letterboxdUri}`
+			);
 			return null;
 		}
 
@@ -120,9 +124,9 @@ export async function fetchLetterboxdPageData(letterboxdUri: string): Promise<Le
 
 /**
  * Extracts the viewing ID from RSS GUID format
- * 
+ *
  * RSS format: letterboxd-review-{id} or letterboxd-watch-{id}
- * 
+ *
  * @returns The viewing ID or null if not a valid RSS GUID
  */
 export function extractViewingIdFromRssGuid(guid: string): string | null {

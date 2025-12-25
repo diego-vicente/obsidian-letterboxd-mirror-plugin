@@ -138,15 +138,11 @@ describe("extractTmdbId", () => {
 
 describe("extractViewingIdFromRssGuid", () => {
 	it("extracts ID from letterboxd-review-{id} format", () => {
-		expect(extractViewingIdFromRssGuid("letterboxd-review-1093163294")).toBe(
-			"1093163294"
-		);
+		expect(extractViewingIdFromRssGuid("letterboxd-review-1093163294")).toBe("1093163294");
 	});
 
 	it("extracts ID from letterboxd-watch-{id} format", () => {
-		expect(extractViewingIdFromRssGuid("letterboxd-watch-456789")).toBe(
-			"456789"
-		);
+		expect(extractViewingIdFromRssGuid("letterboxd-watch-456789")).toBe("456789");
 	});
 
 	it("returns null for unrecognized format", () => {

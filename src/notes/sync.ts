@@ -53,10 +53,10 @@ function createGuidRegex(guidKey: string): RegExp {
 function filenameTemplateToRegex(template: string): RegExp {
 	// Escape regex special chars except our {{}} placeholders
 	let pattern = template.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	
+
 	// Replace {{variable}} with capture groups
 	pattern = pattern.replace(/\\\{\\\{[^}]+\\\}\\\}/g, "(.+)");
-	
+
 	return new RegExp(`^${pattern}$`);
 }
 
@@ -196,7 +196,9 @@ function buildResultMessage(source: string, result: SyncResult): string {
 	if (result.created > 0) parts.push(`${result.created} created`);
 	if (result.skipped > 0) parts.push(`${result.skipped} skipped`);
 	if (result.errors > 0) parts.push(`${result.errors} errors`);
-	return parts.length ? `Letterboxd ${source}: ${parts.join(", ")}` : `Letterboxd ${source}: No changes`;
+	return parts.length
+		? `Letterboxd ${source}: ${parts.join(", ")}`
+		: `Letterboxd ${source}: No changes`;
 }
 
 // ============================================================================
@@ -237,8 +239,14 @@ function findMatchingNote(
 				// We can't use TMDB ID for matching because CSV exports don't include it.
 				// A better solution would be to match by a unique identifier in frontmatter.
 				// Related: https://github.com/diego-vicente/obsidian-letterboxd-mirror-plugin/issues/1
-				const noteFilmTitle = filmMatch[1].toLowerCase().trim().replace(/\s*\(\d{4}\)$/, "");
-				const entryFilmTitle = entry.filmTitle.toLowerCase().trim().replace(/\s*\(\d{4}\)$/, "");
+				const noteFilmTitle = filmMatch[1]
+					.toLowerCase()
+					.trim()
+					.replace(/\s*\(\d{4}\)$/, "");
+				const entryFilmTitle = entry.filmTitle
+					.toLowerCase()
+					.trim()
+					.replace(/\s*\(\d{4}\)$/, "");
 				if (noteFilmTitle === entryFilmTitle) {
 					matches.push(note);
 				}
@@ -253,7 +261,7 @@ function findMatchingNote(
 	if (matches.length > 1) {
 		throw new Error(
 			`Multiple matches for "${entry.filmTitle}" (${entry.watchedDate}): ` +
-			matches.map((m) => m.file.basename).join(", ")
+				matches.map((m) => m.file.basename).join(", ")
 		);
 	}
 
@@ -314,11 +322,7 @@ function hasPendingSentinel(existingValue: string): boolean {
  * - Don't replace if values are equal (after normalization)
  * - For dates, don't replace if only time portion differs
  */
-function shouldUpdateValue(
-	varName: string,
-	newValue: string,
-	existingValue: string
-): boolean {
+function shouldUpdateValue(varName: string, newValue: string, existingValue: string): boolean {
 	// Never overwrite certain fields from CSV
 	if (IMMUTABLE_VARIABLES.has(varName)) {
 		return false;
@@ -383,7 +387,8 @@ function updateNoteFrontmatter(
 		if (!trimmedLine || !trimmedLine.includes(":")) continue;
 
 		// Check if this line has a variable we can update
-		const varMatch = trimmedLine.match(/\{\{(\w+)\}\}/);
+		// Match {{variableName}} or {{variableName param=value...}}
+		const varMatch = trimmedLine.match(/\{\{(\w+)(?:\s+[^}]*)?\}\}/);
 		if (!varMatch) continue;
 
 		const varName = varMatch[1];
@@ -397,7 +402,7 @@ function updateNoteFrontmatter(
 
 		// Generate the new line value
 		const newLine = renderTemplate(trimmedLine, entry);
-		
+
 		// Extract just the value portion from the new line (after the colon)
 		const colonIdx = newLine.indexOf(":");
 		const newValue = colonIdx !== -1 ? newLine.substring(colonIdx + 1).trim() : "";
@@ -562,15 +567,12 @@ export async function importFromCSV(
 		if (result.errors.length > 0) parts.push(`${result.errors.length} errors`);
 
 		new Notice(
-			parts.length > 0
-				? `Letterboxd CSV: ${parts.join(", ")}`
-				: "Letterboxd CSV: No changes"
+			parts.length > 0 ? `Letterboxd CSV: ${parts.join(", ")}` : "Letterboxd CSV: No changes"
 		);
 
 		if (result.errors.length > 0) {
 			console.error("Letterboxd CSV import errors:", result.errors);
 		}
-
 	} catch (error) {
 		const msg = error instanceof Error ? error.message : "Unknown error";
 		new Notice(`Letterboxd CSV: Import failed - ${msg}`);

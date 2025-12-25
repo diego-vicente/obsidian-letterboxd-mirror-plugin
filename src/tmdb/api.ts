@@ -1,11 +1,6 @@
 import { requestUrl } from "obsidian";
 import type { TMDBMovie, TMDBMovieResponse } from "./types";
-import {
-	TMDB_IMAGE_BASE_URL,
-	TMDB_WEB_BASE_URL,
-	POSTER_SIZES,
-	BACKDROP_SIZES,
-} from "./types";
+import { TMDB_IMAGE_BASE_URL, TMDB_WEB_BASE_URL, POSTER_SIZES, BACKDROP_SIZES } from "./types";
 
 /** TMDB API base URL */
 const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
@@ -65,9 +60,7 @@ export function extractYear(dateStr: string): number {
 function transformResponse(response: TMDBMovieResponse): TMDBMovie {
 	const genres = response.genres.map((g) => g.name);
 	const productionCompanies = response.production_companies.map((c) => c.name);
-	const spokenLanguages = response.spoken_languages.map(
-		(l) => l.english_name || l.name
-	);
+	const spokenLanguages = response.spoken_languages.map((l) => l.english_name || l.name);
 
 	// Extract credits if available
 	const credits = response.credits;
@@ -80,9 +73,7 @@ function transformResponse(response: TMDBMovieResponse): TMDBMovie {
 	const characters = sortedCast.map((c) => c.character);
 
 	// Extract directors from crew
-	const directors = crewMembers
-		.filter((c) => c.job === "Director")
-		.map((c) => c.name);
+	const directors = crewMembers.filter((c) => c.job === "Director").map((c) => c.name);
 
 	return {
 		tmdbId: response.id,

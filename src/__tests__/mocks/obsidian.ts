@@ -3,7 +3,10 @@
  */
 
 export class Notice {
-	constructor(public message: string, public timeout?: number) {}
+	constructor(
+		public message: string,
+		public timeout?: number
+	) {}
 }
 
 export class TFile {
@@ -80,26 +83,52 @@ export class PluginSettingTab {
 
 export class Setting {
 	constructor(_containerEl: HTMLElement) {}
-	setName(_name: string): this { return this; }
-	setDesc(_desc: string): this { return this; }
-	addText(_cb: (text: TextComponent) => void): this { return this; }
-	addToggle(_cb: (toggle: ToggleComponent) => void): this { return this; }
-	addTextArea(_cb: (textarea: TextAreaComponent) => void): this { return this; }
+	setName(_name: string): this {
+		return this;
+	}
+	setDesc(_desc: string): this {
+		return this;
+	}
+	addText(_cb: (text: TextComponent) => void): this {
+		return this;
+	}
+	addToggle(_cb: (toggle: ToggleComponent) => void): this {
+		return this;
+	}
+	addTextArea(_cb: (textarea: TextAreaComponent) => void): this {
+		return this;
+	}
 }
 
 export class TextComponent {
-	setValue(_value: string): this { return this; }
-	setPlaceholder(_placeholder: string): this { return this; }
-	onChange(_cb: (value: string) => void): this { return this; }
+	setValue(_value: string): this {
+		return this;
+	}
+	setPlaceholder(_placeholder: string): this {
+		return this;
+	}
+	onChange(_cb: (value: string) => void): this {
+		return this;
+	}
 }
 
 export class ToggleComponent {
-	setValue(_value: boolean): this { return this; }
-	onChange(_cb: (value: boolean) => void): this { return this; }
+	setValue(_value: boolean): this {
+		return this;
+	}
+	onChange(_cb: (value: boolean) => void): this {
+		return this;
+	}
 }
 
 export class TextAreaComponent {
-	setValue(_value: string): this { return this; }
-	setPlaceholder(_placeholder: string): this { return this; }
-	onChange(_cb: (value: string) => void): this { return this; }
+	setValue(_value: string): this {
+		return this;
+	}
+	setPlaceholder(_placeholder: string): this {
+		return this;
+	}
+	onChange(_cb: (value: string) => void): this {
+		return this;
+	}
 }

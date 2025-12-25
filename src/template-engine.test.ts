@@ -109,9 +109,7 @@ describe("formatArray", () => {
 	});
 
 	it("formats as YAML bullet list", () => {
-		expect(formatArray(["A", "B"], { yaml: true, bullet: true })).toBe(
-			"  - A\n  - B"
-		);
+		expect(formatArray(["A", "B"], { yaml: true, bullet: true })).toBe("  - A\n  - B");
 	});
 
 	it("formats as markdown bullet list", () => {
@@ -127,9 +125,7 @@ describe("formatArray", () => {
 	});
 
 	it("applies both link and top", () => {
-		expect(formatArray(testArray, { top: 2, link: true })).toBe(
-			"[[Apple]], [[Banana]]"
-		);
+		expect(formatArray(testArray, { top: 2, link: true })).toBe("[[Apple]], [[Banana]]");
 	});
 
 	it("handles empty array", () => {
@@ -156,9 +152,7 @@ describe("formatValue", () => {
 		});
 
 		it("applies both bold and italic", () => {
-			expect(formatValue("hello", { bold: true, italic: true })).toBe(
-				"***hello***"
-			);
+			expect(formatValue("hello", { bold: true, italic: true })).toBe("***hello***");
 		});
 
 		it("applies quote to single line", () => {
@@ -166,9 +160,7 @@ describe("formatValue", () => {
 		});
 
 		it("applies quote to multi-line", () => {
-			expect(formatValue("line1\nline2", { quote: true })).toBe(
-				"> line1\n> line2"
-			);
+			expect(formatValue("line1\nline2", { quote: true })).toBe("> line1\n> line2");
 		});
 
 		it("applies link", () => {
@@ -192,9 +184,7 @@ describe("formatValue", () => {
 		});
 
 		it("applies both prefix and suffix", () => {
-			expect(formatValue("hello", { prefix: "[", suffix: "]" })).toBe(
-				"[hello]"
-			);
+			expect(formatValue("hello", { prefix: "[", suffix: "]" })).toBe("[hello]");
 		});
 	});
 
@@ -208,9 +198,7 @@ describe("formatValue", () => {
 		});
 
 		it("applies prefix/suffix to numbers", () => {
-			expect(formatValue(5, { prefix: "Rating: ", suffix: "/10" })).toBe(
-				"Rating: 5/10"
-			);
+			expect(formatValue(5, { prefix: "Rating: ", suffix: "/10" })).toBe("Rating: 5/10");
 		});
 	});
 
@@ -252,9 +240,7 @@ describe("formatValue", () => {
 		});
 
 		it("does not apply prefix/suffix when value is empty and skipEmpty=true", () => {
-			expect(
-				formatValue("", { skipEmpty: true, prefix: "[", suffix: "]" })
-			).toBe("");
+			expect(formatValue("", { skipEmpty: true, prefix: "[", suffix: "]" })).toBe("");
 		});
 	});
 });
@@ -292,15 +278,11 @@ describe("createTemplateEngine", () => {
 
 	describe("render", () => {
 		it("substitutes simple variables", () => {
-			expect(engine.render("{{title}} ({{year}})", testData)).toBe(
-				"The Revenant (2015)"
-			);
+			expect(engine.render("{{title}} ({{year}})", testData)).toBe("The Revenant (2015)");
 		});
 
 		it("substitutes variable with parameters", () => {
-			expect(engine.render("{{tags yaml=true}}", testData)).toBe(
-				'["drama", "survival"]'
-			);
+			expect(engine.render("{{tags yaml=true}}", testData)).toBe('["drama", "survival"]');
 		});
 
 		it("handles unknown variables by leaving them as-is", () => {
@@ -310,9 +292,7 @@ describe("createTemplateEngine", () => {
 		it("processes conditional blocks (truthy)", () => {
 			const template = "Title{{#if isRewatch}} (rewatch){{/if}}";
 			const dataWithRewatch = { ...testData, isRewatch: true };
-			expect(engine.render(template, dataWithRewatch)).toBe(
-				"Title (rewatch)"
-			);
+			expect(engine.render(template, dataWithRewatch)).toBe("Title (rewatch)");
 		});
 
 		it("processes conditional blocks (falsy)", () => {
@@ -337,23 +317,17 @@ describe("createTemplateEngine", () => {
 
 		it("removes invalid filename characters", () => {
 			const dataWithSpecialChars = { ...testData, title: 'Film: "Test"' };
-			expect(
-				engine.generateFilename("{{title}}", dataWithSpecialChars)
-			).toBe("Film Test");
+			expect(engine.generateFilename("{{title}}", dataWithSpecialChars)).toBe("Film Test");
 		});
 
 		it("removes leading/trailing dots", () => {
 			const dataWithDots = { ...testData, title: "...Hidden..." };
-			expect(engine.generateFilename("{{title}}", dataWithDots)).toBe(
-				"Hidden"
-			);
+			expect(engine.generateFilename("{{title}}", dataWithDots)).toBe("Hidden");
 		});
 
 		it("trims whitespace", () => {
 			const dataWithSpaces = { ...testData, title: "  Spaced  " };
-			expect(engine.generateFilename("{{title}}", dataWithSpaces)).toBe(
-				"Spaced"
-			);
+			expect(engine.generateFilename("{{title}}", dataWithSpaces)).toBe("Spaced");
 		});
 	});
 
@@ -395,30 +369,21 @@ describe("createTemplateEngine", () => {
 		});
 
 		it("passes params to special handler", () => {
-			expect(
-				engineWithHandlers.render("{{castWithRoles bullet=true}}", movieData)
-			).toBe(
+			expect(engineWithHandlers.render("{{castWithRoles bullet=true}}", movieData)).toBe(
 				"- Leonardo DiCaprio as Hugh Glass\n- Tom Hardy as John Fitzgerald"
 			);
 		});
 
 		it("handles linkActors param", () => {
-			expect(
-				engineWithHandlers.render("{{castWithRoles linkActors=true}}", movieData)
-			).toBe(
+			expect(engineWithHandlers.render("{{castWithRoles linkActors=true}}", movieData)).toBe(
 				"[[Leonardo DiCaprio]] as Hugh Glass, [[Tom Hardy]] as John Fitzgerald"
 			);
 		});
 
 		it("applies prefix/suffix to special handler output", () => {
 			expect(
-				engineWithHandlers.render(
-					'{{castWithRoles prefix="Cast: " suffix="."}}',
-					movieData
-				)
-			).toBe(
-				"Cast: Leonardo DiCaprio as Hugh Glass, Tom Hardy as John Fitzgerald."
-			);
+				engineWithHandlers.render('{{castWithRoles prefix="Cast: " suffix="."}}', movieData)
+			).toBe("Cast: Leonardo DiCaprio as Hugh Glass, Tom Hardy as John Fitzgerald.");
 		});
 	});
 });

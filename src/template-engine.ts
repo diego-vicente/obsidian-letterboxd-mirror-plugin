@@ -299,24 +299,21 @@ export function createTemplateEngine<T>(config: TemplateEngineConfig<T>) {
 	 * Processes conditional blocks in the template
 	 */
 	function processConditionals(template: string, data: T): string {
-		return template.replace(
-			CONDITIONAL_PATTERN,
-			(_, variableName: string, content: string) => {
-				// Check special handlers first
-				if (specialHandlers[variableName]) {
-					// For special handlers, check if the underlying data exists
-					// This is a simplification - assume truthy if handler exists
-					return content;
-				}
-
-				const accessor = accessors[variableName];
-				if (!accessor) {
-					return "";
-				}
-				const value = accessor(data);
-				return isTruthy(value) ? content : "";
+		return template.replace(CONDITIONAL_PATTERN, (_, variableName: string, content: string) => {
+			// Check special handlers first
+			if (specialHandlers[variableName]) {
+				// For special handlers, check if the underlying data exists
+				// This is a simplification - assume truthy if handler exists
+				return content;
 			}
-		);
+
+			const accessor = accessors[variableName];
+			if (!accessor) {
+				return "";
+			}
+			const value = accessor(data);
+			return isTruthy(value) ? content : "";
+		});
 	}
 
 	/**

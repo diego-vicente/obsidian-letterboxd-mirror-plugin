@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-	buildImageUrl,
-	formatRuntime,
-	extractYear,
-	templateNeedsCredits,
-} from "./api";
+import { buildImageUrl, formatRuntime, extractYear, templateNeedsCredits } from "./api";
 
 // ============================================================================
 // buildImageUrl
@@ -28,15 +23,9 @@ describe("buildImageUrl", () => {
 	});
 
 	it("handles various sizes", () => {
-		expect(buildImageUrl("/img.jpg", "w92")).toBe(
-			"https://image.tmdb.org/t/p/w92/img.jpg"
-		);
-		expect(buildImageUrl("/img.jpg", "w185")).toBe(
-			"https://image.tmdb.org/t/p/w185/img.jpg"
-		);
-		expect(buildImageUrl("/img.jpg", "w780")).toBe(
-			"https://image.tmdb.org/t/p/w780/img.jpg"
-		);
+		expect(buildImageUrl("/img.jpg", "w92")).toBe("https://image.tmdb.org/t/p/w92/img.jpg");
+		expect(buildImageUrl("/img.jpg", "w185")).toBe("https://image.tmdb.org/t/p/w185/img.jpg");
+		expect(buildImageUrl("/img.jpg", "w780")).toBe("https://image.tmdb.org/t/p/w780/img.jpg");
 	});
 });
 
@@ -141,15 +130,11 @@ describe("templateNeedsCredits", () => {
 	});
 
 	it("returns true for directors with parameters", () => {
-		expect(templateNeedsCredits("{{directors yaml=true link=true}}")).toBe(
-			true
-		);
+		expect(templateNeedsCredits("{{directors yaml=true link=true}}")).toBe(true);
 	});
 
 	it("returns true for castWithRoles with parameters", () => {
-		expect(
-			templateNeedsCredits("{{castWithRoles bullet=true linkActors=true}}")
-		).toBe(true);
+		expect(templateNeedsCredits("{{castWithRoles bullet=true linkActors=true}}")).toBe(true);
 	});
 
 	it("returns false for template without credits", () => {
