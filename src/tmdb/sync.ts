@@ -1,10 +1,49 @@
 import { Notice, TFile, TFolder } from "obsidian";
 import type LetterboxdPlugin from "../main";
+import type { NotificationLevel } from "../types";
 import type { TMDBMovie } from "./types";
 import { fetchTMDBMovie, templateNeedsCredits } from "./api";
 import { renderTMDBTemplate, generateTMDBFilename } from "./template";
 import { ensureFolderExists } from "../utils/vault";
 import { createFrontmatterKeyRegex } from "../utils/frontmatter";
+
+// ============================================================================
+// Notification Helpers
+// ============================================================================
+
+/**
+ * Shows a notification based on the notification level setting
+ * @param message - The message to display
+ * @param level - Current notification level setting
+ * @param type - Type of notification: "progress" (verbose only), "result" (verbose or newFilesOnly with changes), "error" (always)
+ * @param hasNewFiles - Whether new files were created (for "result" type)
+ */
+function notify(
+	message: string,
+	level: NotificationLevel,
+	type: "progress" | "result" | "error",
+	hasNewFiles = false
+): void {
+	if (type === "error") {
+		// Errors always show
+		new Notice(message);
+		return;
+	}
+
+	if (level === "silent") {
+		return;
+	}
+
+	if (level === "verbose") {
+		new Notice(message);
+		return;
+	}
+
+	// level === "newFilesOnly"
+	if (type === "result" && hasNewFiles) {
+		new Notice(message);
+	}
+}
 
 // ============================================================================
 // Types
@@ -208,21 +247,21 @@ export async function syncFilmsFromTMDB(
  */
 export async function syncAllFilmsFromDiary(plugin: LetterboxdPlugin): Promise<TMDBSyncResult> {
 	const result: TMDBSyncResult = { created: 0, skipped: 0, errors: 0 };
-	const { tmdbApiKey, folderPath } = plugin.settings;
+	const { tmdbApiKey, folderPath, notificationLevel } = plugin.settings;
 
 	if (!tmdbApiKey) {
-		new Notice("TMDB: Please set your API key in settings");
+		notify("TMDB: Please set your API key in settings", notificationLevel, "error");
 		return result;
 	}
 
 	try {
-		new Notice("TMDB: Scanning diary for films...");
+		notify("TMDB: Scanning diary for films...", notificationLevel, "progress");
 
 		const { vault } = plugin.app;
 		const folder = vault.getAbstractFileByPath(folderPath);
 
 		if (!(folder instanceof TFolder)) {
-			new Notice("TMDB: Letterboxd folder not found");
+			notify("TMDB: Letterboxd folder not found", notificationLevel, "error");
 			return result;
 		}
 
@@ -249,19 +288,19 @@ export async function syncAllFilmsFromDiary(plugin: LetterboxdPlugin): Promise<T
 		}
 
 		if (tmdbIds.length === 0) {
-			new Notice("TMDB: No diary entries with TMDB IDs found");
+			notify("TMDB: No diary entries with TMDB IDs found", notificationLevel, "progress");
 			return result;
 		}
 
-		new Notice(`TMDB: Found ${tmdbIds.length} films, syncing...`);
+		notify(`TMDB: Found ${tmdbIds.length} films, syncing...`, notificationLevel, "progress");
 
 		const syncResult = await syncFilmsFromTMDB(plugin, tmdbIds);
 		Object.assign(result, syncResult);
 
-		new Notice(buildResultMessage(result));
+		notify(buildResultMessage(result), notificationLevel, "result", result.created > 0);
 	} catch (error) {
 		const msg = error instanceof Error ? error.message : "Unknown error";
-		new Notice(`TMDB: Sync failed - ${msg}`);
+		notify(`TMDB: Sync failed - ${msg}`, notificationLevel, "error");
 		console.error("TMDB sync error:", error);
 	}
 

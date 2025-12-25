@@ -1,8 +1,75 @@
 /*
+ * Letterboxd Mirror - Styles
+ */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+/* Template Editor Modal */
+.modal.mod-letterboxd-template-editor {
+	width: calc(100vw - var(--size-4-8));
+	max-width: 700px;
+	height: calc(100vh - var(--size-4-8));
+	max-height: 600px;
+}
 
-If your plugin does not need CSS, delete this file.
+.modal.mod-letterboxd-template-editor .modal-content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+}
 
-*/
+.letterboxd-template-description {
+	margin-bottom: var(--size-4-3);
+	flex-shrink: 0;
+}
+
+.letterboxd-template-description a {
+	color: var(--text-accent);
+}
+
+.letterboxd-template-textarea-container {
+	flex: 1;
+	display: flex;
+	min-height: 0; /* Allow flex child to shrink */
+	margin-bottom: var(--size-4-3);
+}
+
+.letterboxd-template-textarea {
+	width: 100%;
+	height: 100%;
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-small);
+	line-height: 1.5;
+	padding: var(--size-4-2);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	background-color: var(--background-primary);
+	color: var(--text-normal);
+	resize: none;
+	tab-size: 2;
+}
+
+.letterboxd-template-textarea:focus {
+	border-color: var(--interactive-accent);
+	outline: none;
+}
+
+.letterboxd-template-buttons {
+	display: flex;
+	justify-content: flex-end;
+	flex-shrink: 0;
+}
+
+.letterboxd-template-buttons .setting-item {
+	border: none;
+	padding: 0;
+}
+
+.letterboxd-template-buttons .setting-item-control {
+	gap: var(--size-4-2);
+}
+
+/* Monospace text inputs for templates, paths, and keys */
+.setting-item input[type="text"].letterboxd-monospace-input {
+	font-family: var(--font-monospace) !important;
+	font-size: var(--font-ui-small) !important;
+}

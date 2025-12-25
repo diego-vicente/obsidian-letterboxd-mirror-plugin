@@ -2,6 +2,14 @@
 export const TAGS_PENDING_FROM_RSS = "_pending_csv_import";
 
 /**
+ * Notification verbosity levels for sync operations
+ * - silent: No notifications during sync
+ * - verbose: All messages (start, complete, errors, counts)
+ * - newFilesOnly: Only notify when new files are created (count > 0)
+ */
+export type NotificationLevel = "silent" | "verbose" | "newFilesOnly";
+
+/**
  * Represents a single diary entry from Letterboxd RSS feed or CSV import
  */
 export interface LetterboxdEntry {
@@ -51,6 +59,8 @@ export interface LetterboxdSettings {
 	syncOnStartup: boolean;
 	/** Only sync entries that have a review (skip watch-only logs) */
 	syncReviewsOnly: boolean;
+	/** Notification verbosity level for sync operations */
+	notificationLevel: NotificationLevel;
 	/** Frontmatter key used to store the Letterboxd GUID for deduplication */
 	guidFrontmatterKey: string;
 

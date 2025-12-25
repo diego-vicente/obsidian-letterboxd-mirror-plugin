@@ -1,6 +1,6 @@
 import { Notice, TFile, TFolder } from "obsidian";
 import type LetterboxdPlugin from "../main";
-import type { LetterboxdEntry, LetterboxdSettings } from "../types";
+import type { LetterboxdEntry, LetterboxdSettings, NotificationLevel } from "../types";
 import { TAGS_PENDING_FROM_RSS } from "../types";
 import { fetchLetterboxdRSS } from "../letterboxd/parser";
 import { parseLetterboxdExport } from "../letterboxd/csv-parser";
@@ -8,6 +8,44 @@ import { getExistingTmdbIds } from "../tmdb/sync";
 import { renderTemplate, generateFilename } from "./template";
 import { ensureFolderExists } from "../utils/vault";
 import { createFrontmatterKeyRegex } from "../utils/frontmatter";
+
+// ============================================================================
+// Notification Helpers
+// ============================================================================
+
+/**
+ * Shows a notification based on the notification level setting
+ * @param message - The message to display
+ * @param level - Current notification level setting
+ * @param type - Type of notification: "progress" (verbose only), "result" (verbose or newFilesOnly with changes), "error" (always)
+ * @param hasNewFiles - Whether new files were created (for "result" type)
+ */
+function notify(
+	message: string,
+	level: NotificationLevel,
+	type: "progress" | "result" | "error",
+	hasNewFiles = false
+): void {
+	if (type === "error") {
+		// Errors always show
+		new Notice(message);
+		return;
+	}
+
+	if (level === "silent") {
+		return;
+	}
+
+	if (level === "verbose") {
+		new Notice(message);
+		return;
+	}
+
+	// level === "newFilesOnly"
+	if (type === "result" && hasNewFiles) {
+		new Notice(message);
+	}
+}
 
 // ============================================================================
 // Types
@@ -118,17 +156,17 @@ async function createNote(plugin: LetterboxdPlugin, entry: LetterboxdEntry): Pro
  * Syncs Letterboxd diary entries via RSS
  */
 export async function syncDiary(plugin: LetterboxdPlugin): Promise<SyncResult> {
-	const { username, folderPath, syncReviewsOnly } = plugin.settings;
+	const { username, folderPath, syncReviewsOnly, notificationLevel } = plugin.settings;
 
 	const result: SyncResult = { created: 0, skipped: 0, errors: 0, createdTmdbIds: [] };
 
 	if (!username) {
-		new Notice("Letterboxd: Please set your username in settings");
+		notify("Letterboxd: Please set your username in settings", notificationLevel, "error");
 		return result;
 	}
 
 	try {
-		new Notice("Letterboxd: Fetching diary...");
+		notify("Letterboxd: Fetching diary...", notificationLevel, "progress");
 
 		const allEntries = await fetchLetterboxdRSS(username);
 		const entries = syncReviewsOnly
@@ -136,7 +174,7 @@ export async function syncDiary(plugin: LetterboxdPlugin): Promise<SyncResult> {
 			: allEntries;
 
 		if (entries.length === 0) {
-			new Notice("Letterboxd: No entries found");
+			notify("Letterboxd: No entries found", notificationLevel, "progress");
 			return result;
 		}
 
@@ -164,10 +202,10 @@ export async function syncDiary(plugin: LetterboxdPlugin): Promise<SyncResult> {
 			}
 		}
 
-		new Notice(buildResultMessage("RSS", result));
+		notify(buildResultMessage("RSS", result), notificationLevel, "result", result.created > 0);
 	} catch (error) {
 		const msg = error instanceof Error ? error.message : "Unknown error";
-		new Notice(`Letterboxd: Sync failed - ${msg}`);
+		notify(`Letterboxd: Sync failed - ${msg}`, notificationLevel, "error");
 		console.error("Letterboxd sync error:", error);
 	}
 
@@ -440,10 +478,14 @@ export async function importFromCSV(
 		newTmdbIds: [],
 	};
 
-	const { folderPath, filenameTemplate } = plugin.settings;
+	const { folderPath, filenameTemplate, notificationLevel } = plugin.settings;
 
 	try {
-		new Notice("Letterboxd: Processing CSV and fetching data from Letterboxd...");
+		notify(
+			"Letterboxd: Processing CSV and fetching data from Letterboxd...",
+			notificationLevel,
+			"progress"
+		);
 
 		// Parse and enrich CSV files (fetches viewing ID and TMDB ID from Letterboxd)
 		const allEntries = await parseLetterboxdExport(
@@ -452,14 +494,18 @@ export async function importFromCSV(
 			(current, total, filmTitle) => {
 				// Update notice periodically to show progress
 				if (current % 10 === 0 || current === total) {
-					new Notice(`Letterboxd: Fetching data... ${current}/${total}`);
+					notify(
+						`Letterboxd: Fetching data... ${current}/${total}`,
+						notificationLevel,
+						"progress"
+					);
 				}
 				console.log(`Letterboxd: Enriching ${current}/${total}: ${filmTitle}`);
 			}
 		);
 
 		if (allEntries.length === 0) {
-			new Notice("Letterboxd: No entries found in CSV");
+			notify("Letterboxd: No entries found in CSV", notificationLevel, "progress");
 			return result;
 		}
 
@@ -479,8 +525,10 @@ export async function importFromCSV(
 
 		if (validationErrors.length > 0) {
 			result.errors = validationErrors;
-			new Notice(
-				`Letterboxd CSV: ${validationErrors.length} ambiguous matches found. Check console.`
+			notify(
+				`Letterboxd CSV: ${validationErrors.length} ambiguous matches found. Check console.`,
+				notificationLevel,
+				"error"
 			);
 			console.error("Letterboxd CSV validation errors:", validationErrors);
 			return result;
@@ -540,8 +588,11 @@ export async function importFromCSV(
 		if (result.skipped > 0) parts.push(`${result.skipped} unchanged`);
 		if (result.errors.length > 0) parts.push(`${result.errors.length} errors`);
 
-		new Notice(
-			parts.length > 0 ? `Letterboxd CSV: ${parts.join(", ")}` : "Letterboxd CSV: No changes"
+		notify(
+			parts.length > 0 ? `Letterboxd CSV: ${parts.join(", ")}` : "Letterboxd CSV: No changes",
+			notificationLevel,
+			"result",
+			result.created > 0
 		);
 
 		if (result.errors.length > 0) {
@@ -549,7 +600,7 @@ export async function importFromCSV(
 		}
 	} catch (error) {
 		const msg = error instanceof Error ? error.message : "Unknown error";
-		new Notice(`Letterboxd CSV: Import failed - ${msg}`);
+		notify(`Letterboxd CSV: Import failed - ${msg}`, notificationLevel, "error");
 		console.error("Letterboxd CSV import error:", error);
 		result.errors.push(msg);
 	}
