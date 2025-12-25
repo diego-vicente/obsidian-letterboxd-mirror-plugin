@@ -9,8 +9,9 @@ import { App, Modal, Setting } from "obsidian";
 /** Callback when template is saved */
 type OnSaveCallback = (template: string) => void;
 
-// TODO: Create documentation page for template variables and update this URL
-const TEMPLATE_DOCS_URL = "https://github.com/your-repo/obsidian-letterboxd-plugin#templates";
+/** URL to template variables documentation on GitHub wiki */
+const TEMPLATE_DOCS_URL =
+	"https://github.com/diego-vicente/obsidian-letterboxd-mirror-plugin/wiki/Template-Variables";
 
 /**
  * Modal for editing template content with a monospaced editor

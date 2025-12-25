@@ -247,7 +247,6 @@ export async function parseLetterboxdExport(
 	// Parse diary.csv first
 	if (diaryCSV) {
 		const diaryEntries = parseDiaryCSV(diaryCSV);
-		console.log(`Letterboxd: Parsed ${diaryEntries.size} entries from diary.csv`);
 		for (const [key, entry] of diaryEntries) {
 			mergedData.set(key, entry);
 		}
@@ -256,7 +255,6 @@ export async function parseLetterboxdExport(
 	// Parse reviews.csv and merge
 	if (reviewsCSV) {
 		const reviewEntries = parseReviewsCSV(reviewsCSV);
-		console.log(`Letterboxd: Parsed ${reviewEntries.size} entries from reviews.csv`);
 		for (const [key, entry] of reviewEntries) {
 			const existing = mergedData.get(key);
 			if (existing) {
@@ -273,8 +271,6 @@ export async function parseLetterboxdExport(
 
 	const entries = Array.from(mergedData.values());
 	const totalEntries = entries.length;
-	console.log(`Letterboxd: Total merged entries: ${totalEntries}`);
-	console.log(`Letterboxd: Enriching entries by fetching Letterboxd pages...`);
 
 	// Enrich entries by fetching Letterboxd pages
 	const enrichedEntries: LetterboxdEntry[] = [];
@@ -292,10 +288,6 @@ export async function parseLetterboxdExport(
 			enrichedEntries.push(toLetterboxdEntry(enrichedData));
 		}
 	}
-
-	console.log(
-		`Letterboxd: Successfully enriched ${enrichedEntries.length}/${totalEntries} entries`
-	);
 
 	return enrichedEntries;
 }

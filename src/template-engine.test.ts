@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
 	parseParams,
 	formatValue,
@@ -392,28 +392,16 @@ describe("createTemplateEngine", () => {
 // Console warnings
 // ============================================================================
 
-describe("console warnings", () => {
-	let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
-
-	beforeEach(() => {
-		consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+describe("yaml with bold/italic (incompatible options)", () => {
+	it("ignores bold when yaml=true on arrays", () => {
+		// bold/italic are silently ignored when yaml=true (incompatible)
+		const result = formatArray(["A", "B"], { yaml: true, bold: true });
+		expect(result).toBe('["A", "B"]'); // No bold applied, just YAML format
 	});
 
-	afterEach(() => {
-		consoleWarnSpy.mockRestore();
-	});
-
-	it("warns when bold/italic used with yaml on arrays", () => {
-		formatArray(["A", "B"], { yaml: true, bold: true });
-		expect(consoleWarnSpy).toHaveBeenCalledWith(
-			"Template: bold/italic parameters are ignored when yaml=true"
-		);
-	});
-
-	it("warns when bold/italic used with yaml on strings", () => {
-		formatValue("hello", { yaml: true, bold: true });
-		expect(consoleWarnSpy).toHaveBeenCalledWith(
-			"Template: bold/italic parameters are ignored when yaml=true"
-		);
+	it("ignores bold when yaml=true on strings", () => {
+		// bold/italic are silently ignored when yaml=true (incompatible)
+		const result = formatValue("hello", { yaml: true, bold: true });
+		expect(result).toBe('"hello"'); // No bold applied, just quoted
 	});
 });

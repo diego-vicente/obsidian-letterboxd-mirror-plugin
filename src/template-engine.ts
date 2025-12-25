@@ -169,10 +169,7 @@ function formatArray(arr: string[], params: TemplateParams): string {
 
 	// Format based on output type
 	if (params.yaml) {
-		// Warn if bold/italic used with yaml (incompatible)
-		if (params.bold || params.italic) {
-			console.warn("Template: bold/italic parameters are ignored when yaml=true");
-		}
+		// Note: bold/italic parameters are ignored when yaml=true (incompatible)
 		if (params.bullet) {
 			// YAML bullet list (indented)
 			return items.map((item) => `  - ${item}`).join("\n");
@@ -203,12 +200,9 @@ function formatArray(arr: string[], params: TemplateParams): string {
 function formatString(str: string, params: TemplateParams): string {
 	let result = str;
 
-	// Warn if yaml used with string (only makes sense for strings that need quoting)
+	// For strings, yaml=true means wrap in quotes
+	// Note: bold/italic parameters are ignored when yaml=true (incompatible)
 	if (params.yaml) {
-		// For strings, yaml=true means wrap in quotes
-		if (params.bold || params.italic) {
-			console.warn("Template: bold/italic parameters are ignored when yaml=true");
-		}
 		return `"${result.replace(/"/g, '\\"')}"`;
 	}
 

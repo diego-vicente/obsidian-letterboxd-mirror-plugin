@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, debounce } from "obsidian";
+import { App, normalizePath, PluginSettingTab, Setting, debounce } from "obsidian";
 import type LetterboxdPlugin from "./main";
 import type { LetterboxdSettings, NotificationLevel } from "./types";
 import { TemplateEditorModal } from "./ui/template-editor-modal";
@@ -223,7 +223,9 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setPlaceholder(DEFAULT_FOLDER_PATH)
 					.setValue(this.plugin.settings.folderPath)
 					.onChange((value) => {
-						this.plugin.settings.folderPath = value.trim() || DEFAULT_FOLDER_PATH;
+						this.plugin.settings.folderPath = normalizePath(
+							value.trim() || DEFAULT_FOLDER_PATH
+						);
 						this.debouncedSave();
 					})
 			);
@@ -352,8 +354,9 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 					.setPlaceholder(DEFAULT_TMDB_FOLDER_PATH)
 					.setValue(this.plugin.settings.tmdbFolderPath)
 					.onChange((value) => {
-						this.plugin.settings.tmdbFolderPath =
-							value.trim() || DEFAULT_TMDB_FOLDER_PATH;
+						this.plugin.settings.tmdbFolderPath = normalizePath(
+							value.trim() || DEFAULT_TMDB_FOLDER_PATH
+						);
 						this.debouncedSave();
 					})
 			);

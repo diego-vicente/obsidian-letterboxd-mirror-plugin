@@ -1,49 +1,11 @@
-import { Notice, TFile, TFolder } from "obsidian";
+import { normalizePath, TFile, TFolder } from "obsidian";
 import type LetterboxdPlugin from "../main";
-import type { NotificationLevel } from "../types";
 import type { TMDBMovie } from "./types";
 import { fetchTMDBMovie, templateNeedsCredits } from "./api";
 import { renderTMDBTemplate, generateTMDBFilename } from "./template";
 import { ensureFolderExists } from "../utils/vault";
 import { createFrontmatterKeyRegex } from "../utils/frontmatter";
-
-// ============================================================================
-// Notification Helpers
-// ============================================================================
-
-/**
- * Shows a notification based on the notification level setting
- * @param message - The message to display
- * @param level - Current notification level setting
- * @param type - Type of notification: "progress" (verbose only), "result" (verbose or newFilesOnly with changes), "error" (always)
- * @param hasNewFiles - Whether new files were created (for "result" type)
- */
-function notify(
-	message: string,
-	level: NotificationLevel,
-	type: "progress" | "result" | "error",
-	hasNewFiles = false
-): void {
-	if (type === "error") {
-		// Errors always show
-		new Notice(message);
-		return;
-	}
-
-	if (level === "silent") {
-		return;
-	}
-
-	if (level === "verbose") {
-		new Notice(message);
-		return;
-	}
-
-	// level === "newFilesOnly"
-	if (type === "result" && hasNewFiles) {
-		new Notice(message);
-	}
-}
+import { notify } from "../utils/notify";
 
 // ============================================================================
 // Types
@@ -118,12 +80,15 @@ async function createFilmNote(plugin: LetterboxdPlugin, movie: TMDBMovie): Promi
 
 	const filename = generateTMDBFilename(tmdbFilenameTemplate, movie);
 	const content = renderTMDBTemplate(tmdbNoteTemplate, movie);
-	const filePath = `${tmdbFolderPath}/${filename}.md`;
+	const filePath = normalizePath(`${tmdbFolderPath}/${filename}.md`);
 
 	const existingFile = vault.getAbstractFileByPath(filePath);
 	if (existingFile) {
 		// Add TMDB ID suffix to avoid collision (different movies with same title/year)
-		await vault.create(`${tmdbFolderPath}/${filename} (${movie.tmdbId}).md`, content);
+		await vault.create(
+			normalizePath(`${tmdbFolderPath}/${filename} (${movie.tmdbId}).md`),
+			content
+		);
 	} else {
 		await vault.create(filePath, content);
 	}

@@ -137,14 +137,8 @@ export default class LetterboxdPlugin extends Plugin {
 
 					if (filename === DIARY_CSV_FILENAME) {
 						diaryCSV = await file.text();
-						console.log(
-							`Letterboxd: Found diary.csv at root (${diaryCSV.length} chars)`
-						);
 					} else if (filename === REVIEWS_CSV_FILENAME) {
 						reviewsCSV = await file.text();
-						console.log(
-							`Letterboxd: Found reviews.csv at root (${reviewsCSV.length} chars)`
-						);
 					}
 				}
 

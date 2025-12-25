@@ -1,6 +1,6 @@
-import { Notice, TFile, TFolder } from "obsidian";
+import { normalizePath, TFile, TFolder } from "obsidian";
 import type LetterboxdPlugin from "../main";
-import type { LetterboxdEntry, LetterboxdSettings, NotificationLevel } from "../types";
+import type { LetterboxdEntry, LetterboxdSettings } from "../types";
 import { TAGS_PENDING_FROM_RSS } from "../types";
 import { fetchLetterboxdRSS } from "../letterboxd/parser";
 import { parseLetterboxdExport } from "../letterboxd/csv-parser";
@@ -8,44 +8,7 @@ import { getExistingTmdbIds } from "../tmdb/sync";
 import { renderTemplate, generateFilename } from "./template";
 import { ensureFolderExists } from "../utils/vault";
 import { createFrontmatterKeyRegex } from "../utils/frontmatter";
-
-// ============================================================================
-// Notification Helpers
-// ============================================================================
-
-/**
- * Shows a notification based on the notification level setting
- * @param message - The message to display
- * @param level - Current notification level setting
- * @param type - Type of notification: "progress" (verbose only), "result" (verbose or newFilesOnly with changes), "error" (always)
- * @param hasNewFiles - Whether new files were created (for "result" type)
- */
-function notify(
-	message: string,
-	level: NotificationLevel,
-	type: "progress" | "result" | "error",
-	hasNewFiles = false
-): void {
-	if (type === "error") {
-		// Errors always show
-		new Notice(message);
-		return;
-	}
-
-	if (level === "silent") {
-		return;
-	}
-
-	if (level === "verbose") {
-		new Notice(message);
-		return;
-	}
-
-	// level === "newFilesOnly"
-	if (type === "result" && hasNewFiles) {
-		new Notice(message);
-	}
-}
+import { notify } from "../utils/notify";
 
 // ============================================================================
 // Types
@@ -136,13 +99,13 @@ async function createNote(plugin: LetterboxdPlugin, entry: LetterboxdEntry): Pro
 
 	const filename = generateFilename(filenameTemplate, entry);
 	const content = renderTemplate(noteTemplate, entry);
-	const filePath = `${folderPath}/${filename}.md`;
+	const filePath = normalizePath(`${folderPath}/${filename}.md`);
 
 	const existingFile = vault.getAbstractFileByPath(filePath);
 	if (existingFile) {
 		// Add timestamp suffix to avoid collision
 		const timestamp = Date.now();
-		await vault.create(`${folderPath}/${filename} (${timestamp}).md`, content);
+		await vault.create(normalizePath(`${folderPath}/${filename} (${timestamp}).md`), content);
 	} else {
 		await vault.create(filePath, content);
 	}
@@ -500,7 +463,7 @@ export async function importFromCSV(
 						"progress"
 					);
 				}
-				console.log(`Letterboxd: Enriching ${current}/${total}: ${filmTitle}`);
+				// Progress is reported via notify() above
 			}
 		);
 
@@ -548,15 +511,18 @@ export async function importFromCSV(
 				);
 
 				if (matchingNote) {
-					// Update existing note's frontmatter
-					const newContent = updateNoteFrontmatter(
-						matchingNote.content,
-						entry,
-						plugin.settings
-					);
+					// Update existing note's frontmatter using Vault.process for atomicity
+					let wasUpdated = false;
+					await plugin.app.vault.process(matchingNote.file, (content) => {
+						const newContent = updateNoteFrontmatter(content, entry, plugin.settings);
+						if (newContent !== content) {
+							wasUpdated = true;
+							return newContent;
+						}
+						return content;
+					});
 
-					if (newContent !== matchingNote.content) {
-						await plugin.app.vault.modify(matchingNote.file, newContent);
+					if (wasUpdated) {
 						result.updated++;
 					} else {
 						result.skipped++;
