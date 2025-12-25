@@ -3,7 +3,7 @@
 	"name": "Letterboxd Mirror",
 	"version": "0.1.0",
 	"minAppVersion": "1.10.6",
-	"description": "Sync your Letterboxd diary entries as notes.",
+	"description": "Sync your Letterboxd diary as notes.",
 	"author": "Diego Vicente",
 	"authorUrl": "https://diego.codes",
 	"helpUrl": "https://github.com/diego-vicente/obsidian-letterboxd-mirror-plugin/blob/master/docs/Home.md",

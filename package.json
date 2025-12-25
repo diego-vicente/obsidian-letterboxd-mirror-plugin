@@ -1,7 +1,7 @@
 {
 	"name": "obsidian-letterboxd-mirror",
 	"version": "0.1.0",
-	"description": "Sync your Letterboxd diary entries as notes.",
+	"description": "Sync your Letterboxd diary as notes.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
