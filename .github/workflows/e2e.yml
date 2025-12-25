@@ -15,7 +15,6 @@ jobs:
     e2e:
         name: E2E Tests
         runs-on: ubuntu-latest
-        environment: CI Environment
         # Run on push to master, or when a PR review is approved
         if: |
             github.event_name == 'push' ||
