@@ -1,10 +1,12 @@
 {
 	"id": "letterboxd-mirror",
 	"name": "Letterboxd Mirror",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
 	"description": "Sync your Letterboxd diary entries as notes",
 	"author": "Diego Vicente",
-	"authorUrl": "https://github.com/diego-vicente",
+	"authorUrl": "https://diego.codes",
+	"helpUrl": "https://github.com/diego-vicente/obsidian-letterboxd-mirror-plugin/blob/master/docs/Home.md",
+	"fundingUrl": "https://buymeacoffee.com/dvicente",
 	"isDesktopOnly": false
 }

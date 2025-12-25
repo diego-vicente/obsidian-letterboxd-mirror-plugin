@@ -1,94 +1,156 @@
-# Obsidian Sample Plugin
+# Letterboxd Mirror
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Sync your [Letterboxd](https://letterboxd.com) diary entries as notes in [Obsidian](https://obsidian.md).
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- **RSS sync**: Automatically fetches your diary entries from Letterboxd's RSS feed
+- **CSV import**: Import your complete Letterboxd data export for tags and historical entries
+- **TMDB integration**: Create rich Film notes with cast, crew, and metadata from The Movie Database
+- **Rewatch support**: Each viewing gets its own note with a unique ID
+- **Customizable templates**: Full control over filenames and note content using `{{variables}}`
+- **Auto-sync on startup**: Optionally sync new entries when Obsidian launches
+- **Deduplication**: Automatically skips entries that already exist in your vault
 
-## First time developing plugins?
+## Installation
 
-Quick starting guide for new plugin devs:
+### From Obsidian Community Plugins
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+1. Open **Settings** in Obsidian
+2. Go to **Community plugins** and select **Browse**
+3. Search for "Letterboxd Mirror"
+4. Select **Install**, then **Enable**
 
-## Releasing new releases
+### Manual Installation
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/diego-vicente/obsidian-letterboxd-mirror-plugin/releases)
+2. Create a folder called `letterboxd-mirror` in your vault's `.obsidian/plugins/` directory
+3. Copy the downloaded files into this folder
+4. Reload Obsidian and enable the plugin in **Settings → Community plugins**
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+## Quick Start
 
-## Adding your plugin to the community plugin list
+1. Open **Settings → Letterboxd Mirror**
+2. Enter your Letterboxd username
+3. Click the clapperboard icon in the ribbon or run the command **Letterboxd Mirror: Sync diary**
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+Your diary entries will be created as notes in the `Letterboxd` folder.
 
-## How to use
+## Usage
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+### Syncing from RSS
 
-## Manually installing the plugin
+The plugin fetches your public diary entries from `letterboxd.com/<username>/rss`. To sync:
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+- Click the **clapperboard icon** in the ribbon, or
+- Run the command **Letterboxd Mirror: Sync diary**
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint ./src/`
+### Importing from CSV
 
-## Funding URL
+For complete data including tags, you can import from a Letterboxd data export:
 
-You can include funding URLs where people who use your plugin can financially support it.
+1. Go to [Letterboxd Settings → Import & Export](https://letterboxd.com/settings/data/)
+2. Click **Export your data** and download the ZIP file
+3. Extract the ZIP file
+4. In Obsidian, run **Letterboxd Mirror: Import from CSV**
+5. Select the folder containing your extracted data
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+The import will:
+- Create new notes for entries not in your vault
+- Update existing notes with tags from the CSV
+- Preserve any manual edits you've made to note bodies
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+### TMDB Integration
+
+To create Film notes with rich metadata:
+
+1. Get a free API token from [TMDB](https://www.themoviedb.org/settings/api)
+2. Enter your token in **Settings → Letterboxd Mirror → API read access token**
+3. Film notes will be created automatically when you sync diary entries
+
+## Template Variables
+
+### Diary Note Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `{{filmTitle}}` | Film title | The Godfather |
+| `{{filmYear}}` | Release year | 1972 |
+| `{{watchedDate}}` | Date watched (YYYY-MM-DD) | 2024-01-15 |
+| `{{userRatingNo}}` | Rating as number (0.5-5) | 4.5 |
+| `{{userRatingNoOver10}}` | Rating over 10 | 9 |
+| `{{userRatingStars}}` | Rating as stars | ★★★★½ |
+| `{{rewatch}}` | Is this a rewatch? | true/false |
+| `{{review}}` | Your review text | |
+| `{{link}}` | Letterboxd URL | |
+| `{{posterUrl}}` | Poster image URL | |
+| `{{tmdbId}}` | TMDB movie ID | 238 |
+| `{{guid}}` | Unique viewing ID | 1093163294 |
+| `{{tags}}` | Your Letterboxd tags | ["cinema", "favorites"] |
+
+### Film Note Variables (TMDB)
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `{{title}}` | Movie title | The Godfather |
+| `{{originalTitle}}` | Original language title | The Godfather |
+| `{{year}}` | Release year | 1972 |
+| `{{releaseDate}}` | Full release date | 1972-03-14 |
+| `{{runtime}}` | Runtime in minutes | 175 |
+| `{{runtimeFormatted}}` | Formatted runtime | 2h 55m |
+| `{{overview}}` | Plot synopsis | |
+| `{{tagline}}` | Movie tagline | |
+| `{{genres}}` | Genre array | ["Crime", "Drama"] |
+| `{{genreList}}` | Comma-separated genres | Crime, Drama |
+| `{{directors}}` | Director names | ["Francis Ford Coppola"] |
+| `{{cast}}` | Actor names | ["Marlon Brando", ...] |
+| `{{tmdbRating}}` | TMDB rating (0-10) | 8.7 |
+| `{{imdbId}}` | IMDb ID | tt0068646 |
+| `{{tmdbUrl}}` | TMDB page URL | |
+| `{{posterUrlL}}` | Large poster URL | |
+| `{{backdropUrlL}}` | Large backdrop URL | |
+
+### Template Modifiers
+
+Variables support modifiers for formatting:
+
+```
+{{variable yaml=true}}     → YAML-safe output
+{{variable link=true}}     → [[Wikilinks]]
+{{variable quote=true}}    → > Blockquote
+{{variable bold=true}}     → **Bold**
+{{variable skipEmpty=true}} → Omit if empty
+{{variable prefix="!" suffix=")"}} → Custom wrapping
 ```
 
-If you have multiple URLs, you can also do:
+### Conditional Blocks
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+```
+{{#if rewatch}}(rewatch){{/if}}
+{{#if review}}## Review\n{{review}}{{/if}}
 ```
 
-## API Documentation
+## Documentation
 
-See https://github.com/obsidianmd/obsidian-api
+For detailed documentation on all settings and advanced configuration, see the [docs](docs/) folder:
+
+- [Settings](docs/Settings.md) — All configuration options explained
+- [Template Variables](docs/Template-Variables.md) — Complete variable and modifier reference
+
+## Network Disclosure
+
+This plugin makes network requests to:
+
+- `letterboxd.com` — to fetch your RSS feed and diary entry pages
+- `api.themoviedb.org` — to fetch movie metadata (only if TMDB is configured)
+
+No data is sent to any other servers. No analytics or telemetry is collected.
+
+## License
+
+[MIT](LICENSE) — Diego Vicente
+
+## Credits
+
+- Film data provided by [The Movie Database (TMDB)](https://www.themoviedb.org/)
+- Built for [Obsidian](https://obsidian.md)
