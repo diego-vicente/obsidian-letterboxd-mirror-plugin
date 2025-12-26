@@ -33,7 +33,6 @@
 		"dotenv": "^17.2.3",
 		"esbuild": "0.17.3",
 		"eslint": "^9.39.2",
-		"eslint-plugin-obsidian": "^2.27.0",
 		"eslint-plugin-obsidianmd": "^0.1.9",
 		"jsdom": "^27.3.0",
 		"obsidian": "latest",
