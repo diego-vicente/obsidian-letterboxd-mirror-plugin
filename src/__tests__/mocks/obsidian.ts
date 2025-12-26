@@ -43,9 +43,9 @@ export interface RequestUrlResponse {
 	json: unknown;
 }
 
-export async function requestUrl(params: RequestUrlParam): Promise<RequestUrlResponse> {
+export function requestUrl(params: RequestUrlParam): Promise<RequestUrlResponse> {
 	// This will be mocked in tests that need it
-	throw new Error(`requestUrl not mocked for: ${params.url}`);
+	return Promise.reject(new Error(`requestUrl not mocked for: ${params.url}`));
 }
 
 export class Plugin {

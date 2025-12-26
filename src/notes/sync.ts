@@ -400,12 +400,12 @@ function updateNoteFrontmatter(
  * Validates all entries before making any changes
  * Returns list of errors if any entry would cause problems
  */
-async function validateCSVImport(
+function validateCSVImport(
 	entries: LetterboxdEntry[],
 	existingNotes: ExistingNote[],
 	filenameRegex: RegExp,
 	settings: LetterboxdSettings
-): Promise<string[]> {
+): string[] {
 	const errors: string[] = [];
 
 	for (const entry of entries) {
@@ -479,7 +479,7 @@ export async function importFromCSV(
 		const filenameRegex = filenameTemplateToRegex(filenameTemplate);
 
 		// Validate first - check for ambiguous matches
-		const validationErrors = await validateCSVImport(
+		const validationErrors = validateCSVImport(
 			allEntries,
 			existingNotes,
 			filenameRegex,

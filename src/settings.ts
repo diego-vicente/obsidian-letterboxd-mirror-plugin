@@ -207,7 +207,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 			.setDesc("Your Letterboxd username")
 			.addText((text) =>
 				text
-					.setPlaceholder("username")
+					.setPlaceholder("Username")
 					.setValue(this.plugin.settings.username)
 					.onChange((value) => {
 						this.plugin.settings.username = value.trim();
@@ -304,7 +304,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 						defaultTemplate: DEFAULT_NOTE_TEMPLATE,
 						onSave: (template) => {
 							this.plugin.settings.noteTemplate = template;
-							this.plugin.saveSettings();
+							void this.plugin.saveSettings();
 						},
 					}).open();
 				})
@@ -318,7 +318,7 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 
 		// TMDB disclosure - using safe DOM methods
 		const tmdbDesc = document.createDocumentFragment();
-		tmdbDesc.appendText("Create Film notes with enriched metadata from ");
+		tmdbDesc.appendText("Create film notes with enriched metadata from ");
 		tmdbDesc.createEl("a", {
 			text: "The Movie Database",
 			href: "https://www.themoviedb.org/",
@@ -347,8 +347,8 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Films folder")
-			.setDesc("Folder where Film notes will be created")
+			.setName("Film folder")
+			.setDesc("Folder where film notes will be created")
 			.addText((text) =>
 				text
 					.setPlaceholder(DEFAULT_TMDB_FOLDER_PATH)
@@ -400,16 +400,16 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 		// Film note template - button to open modal
 		new Setting(containerEl)
 			.setName("Film note template")
-			.setDesc("Template for Film note content")
+			.setDesc("Template for film note content")
 			.addButton((button) =>
 				button.setButtonText("Edit template").onClick(() => {
 					new TemplateEditorModal(this.app, {
-						title: "Edit Film note template",
+						title: "Edit film note template",
 						template: this.plugin.settings.tmdbNoteTemplate,
 						defaultTemplate: DEFAULT_TMDB_NOTE_TEMPLATE,
 						onSave: (template) => {
 							this.plugin.settings.tmdbNoteTemplate = template;
-							this.plugin.saveSettings();
+							void this.plugin.saveSettings();
 						},
 					}).open();
 				})

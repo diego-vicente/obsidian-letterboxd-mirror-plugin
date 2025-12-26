@@ -43,14 +43,14 @@ export default class LetterboxdPlugin extends Plugin {
 
 		// Add ribbon icon
 		this.addRibbonIcon("clapperboard", "Sync Letterboxd diary", () => {
-			this.syncDiary();
+			void this.syncDiary();
 		});
 
 		// Auto-sync on startup if enabled
 		if (this.settings.syncOnStartup && this.settings.username) {
 			this.registerInterval(
 				window.setTimeout(() => {
-					this.syncDiary();
+					void this.syncDiary();
 				}, STARTUP_SYNC_DELAY_MS)
 			);
 		}
@@ -93,7 +93,7 @@ export default class LetterboxdPlugin extends Plugin {
 	 */
 	async syncTMDBFilms(): Promise<void> {
 		if (!this.settings.tmdbApiKey) {
-			new Notice("TMDB: Please set your API key in settings");
+			new Notice("TMDB: please set your API key in settings.");
 			return;
 		}
 		await syncAllFilmsFromDiary(this);
@@ -103,7 +103,7 @@ export default class LetterboxdPlugin extends Plugin {
 	 * Opens folder picker to import Letterboxd CSV export
 	 * Expects a folder containing diary.csv and optionally reviews.csv
 	 */
-	async importCSVFolder(): Promise<void> {
+	importCSVFolder(): void {
 		// Create a file input that accepts directories
 		// Note: webkitdirectory is not standard but works in Electron/Obsidian
 		const input = document.createElement("input");
@@ -143,7 +143,7 @@ export default class LetterboxdPlugin extends Plugin {
 				}
 
 				if (!diaryCSV && !reviewsCSV) {
-					new Notice("Letterboxd: No diary.csv or reviews.csv found in folder");
+					new Notice("Letterboxd: no diary.csv or reviews.csv found in folder.");
 					return;
 				}
 
@@ -151,7 +151,7 @@ export default class LetterboxdPlugin extends Plugin {
 
 				// If TMDB is enabled and we have new films, sync Film notes
 				if (this.settings.tmdbApiKey && csvResult.newTmdbIds.length > 0) {
-					new Notice(`TMDB: Creating ${csvResult.newTmdbIds.length} Film notes...`);
+					new Notice(`TMDB: creating ${csvResult.newTmdbIds.length} film notes...`);
 					const tmdbResult = await syncFilmsFromTMDB(this, csvResult.newTmdbIds);
 					if (tmdbResult.created > 0 || tmdbResult.errors > 0) {
 						const parts: string[] = [];
