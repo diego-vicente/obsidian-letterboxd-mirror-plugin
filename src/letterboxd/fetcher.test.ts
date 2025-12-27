@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { extractViewingIdFromHtml, extractTmdbId, extractViewingIdFromRssGuid } from "./fetcher";
+import {
+	extractViewingIdFromHtml,
+	extractTmdbId,
+	extractViewingIdFromRssGuid,
+	extractTagsFromHtml,
+} from "./fetcher";
 
 // ============================================================================
 // extractViewingIdFromHtml
@@ -123,5 +128,93 @@ describe("extractViewingIdFromRssGuid", () => {
 		expect(extractViewingIdFromRssGuid("letterboxd-review-9999999999999")).toBe(
 			"9999999999999"
 		);
+	});
+});
+
+// ============================================================================
+// extractTagsFromHtml
+// ============================================================================
+
+describe("extractTagsFromHtml", () => {
+	it("extracts single tag from tags list", () => {
+		const html = `
+			<ul class="tags">
+				<li>
+					<a href="/e2e_test_acc/tag/at-home/films/">at home</a>
+				</li>
+			</ul>
+		`;
+		expect(extractTagsFromHtml(html)).toEqual(["at home"]);
+	});
+
+	it("extracts multiple tags from tags list", () => {
+		const html = `
+			<ul class="tags">
+				<li><a href="/user/tag/cinema/films/">cinema</a></li>
+				<li><a href="/user/tag/date-night/films/">date night</a></li>
+				<li><a href="/user/tag/imax/films/">imax</a></li>
+			</ul>
+		`;
+		expect(extractTagsFromHtml(html)).toEqual(["cinema", "date night", "imax"]);
+	});
+
+	it("returns empty array when no tags ul found", () => {
+		const html = `<div class="content">No tags here</div>`;
+		expect(extractTagsFromHtml(html)).toEqual([]);
+	});
+
+	it("returns empty array for empty tags list", () => {
+		const html = `<ul class="tags"></ul>`;
+		expect(extractTagsFromHtml(html)).toEqual([]);
+	});
+
+	it("returns empty array for empty string", () => {
+		expect(extractTagsFromHtml("")).toEqual([]);
+	});
+
+	it("handles tags with special characters", () => {
+		const html = `
+			<ul class="tags">
+				<li><a href="/user/tag/4k-uhd/films/">4k uhd</a></li>
+				<li><a href="/user/tag/re-watch/films/">re-watch</a></li>
+			</ul>
+		`;
+		expect(extractTagsFromHtml(html)).toEqual(["4k uhd", "re-watch"]);
+	});
+
+	it("trims whitespace from tag text", () => {
+		const html = `
+			<ul class="tags">
+				<li>
+					<a href="/user/tag/spaced/films/">  spaced tag  </a>
+				</li>
+			</ul>
+		`;
+		expect(extractTagsFromHtml(html)).toEqual(["spaced tag"]);
+	});
+
+	it("extracts tags from real Letterboxd HTML structure", () => {
+		const html = `
+			<!-- Hide tags on redacted reviews, except for moderators -->
+			<ul class="tags">
+				<li>
+					<a href="/e2e_test_acc/tag/at-home/films/">at home</a>
+				</li>
+			</ul>
+			<script>/* some script */</script>
+		`;
+		expect(extractTagsFromHtml(html)).toEqual(["at home"]);
+	});
+
+	it("ignores non-tag links inside tags ul", () => {
+		// This shouldn't happen in practice, but test defensive behavior
+		const html = `
+			<ul class="tags">
+				<li><a href="/user/tag/cinema/films/">cinema</a></li>
+				<li><a href="/film/something/">not a tag</a></li>
+			</ul>
+		`;
+		// Only matches links with /tag/ in the path
+		expect(extractTagsFromHtml(html)).toEqual(["cinema"]);
 	});
 });

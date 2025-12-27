@@ -329,7 +329,7 @@ describe("Data Consistency: RSS vs CSV", () => {
 		expect(rssDieHard!.watchedDate).toBe(csvDieHard!.watchedDate);
 	});
 
-	it("CSV provides tags that RSS does not", async () => {
+	it("RSS and CSV both provide tags", async () => {
 		const rssEntries = await fetchLetterboxdRSS(TEST_USERNAME);
 
 		const diaryCSV = readFixtureCSV("diary.csv");
@@ -339,8 +339,9 @@ describe("Data Consistency: RSS vs CSV", () => {
 		const rssDieHard = rssEntries.find((e) => e.filmTitle === "Die Hard");
 		const csvDieHard = csvEntries.find((e) => e.filmTitle === "Die Hard");
 
-		// RSS has sentinel tag
-		expect(rssDieHard!.tags).toContain("_pending_csv_import");
+		// RSS now fetches tags from viewing pages
+		expect(rssDieHard!.tags).toContain("at home");
+		expect(rssDieHard!.tags).not.toContain("_pending_csv_import");
 
 		// CSV has real tags
 		expect(csvDieHard!.tags).not.toContain("_pending_csv_import");
@@ -449,16 +450,17 @@ describe("E2E 3: CSV + Existing Notes", () => {
 			folderPath: "Letterboxd",
 		});
 
-		// First, sync from RSS to create notes with sentinel tags
+		// First, sync from RSS to create notes with tags from viewing pages
 		await syncDiary(plugin as unknown as LetterboxdPlugin);
 
-		// Verify sentinel tag is present
+		// Verify tags are present from RSS (now fetched from viewing pages)
 		const notes = listNotesInVault(vaultPath, "Letterboxd");
 		const dieHardNote = notes.find((n) => n.includes("Die Hard"));
 		let content = readNoteFromVault(vaultPath, `Letterboxd/${dieHardNote}.md`);
-		expect(content).toContain("_pending_csv_import");
+		expect(content).toContain("at home");
+		expect(content).not.toContain("_pending_csv_import");
 
-		// Now import CSV to update tags
+		// Now import CSV - should skip since tags already match
 		const diaryCSV = readFixtureCSV("diary.csv");
 		const reviewsCSV = readFixtureCSV("reviews.csv");
 		const csvResult = await importFromCSV(
@@ -467,10 +469,11 @@ describe("E2E 3: CSV + Existing Notes", () => {
 			reviewsCSV
 		);
 
-		// Should have updated existing notes (tags changed from sentinel to real)
-		expect(csvResult.updated).toBeGreaterThan(0);
+		// Since RSS now provides tags, CSV import should mostly skip (no changes needed)
+		// Some notes may still be updated if other fields differ
+		expect(csvResult.errors.length).toBe(0);
 
-		// Verify sentinel tag was replaced with real tags
+		// Verify tags are still present
 		content = readNoteFromVault(vaultPath, `Letterboxd/${dieHardNote}.md`);
 		expect(content).not.toContain("_pending_csv_import");
 		expect(content).toContain("at home");

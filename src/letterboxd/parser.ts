@@ -1,7 +1,6 @@
 import { requestUrl } from "obsidian";
-import { TAGS_PENDING_FROM_RSS } from "../types";
 import type { LetterboxdEntry } from "../types";
-import { extractViewingIdFromRssGuid } from "./fetcher";
+import { extractViewingIdFromRssGuid, fetchTagsFromViewingPage } from "./fetcher";
 
 /** Base URL for Letterboxd RSS feeds */
 const LETTERBOXD_RSS_BASE_URL = "https://letterboxd.com";
@@ -129,6 +128,7 @@ function getElementText(item: Element, tagName: string): string {
 
 /**
  * Parses a single RSS item into a LetterboxdEntry
+ * Note: tags are initially empty and fetched separately from viewing pages
  */
 function parseItem(item: Element): LetterboxdEntry {
 	const title = getElementText(item, "title");
@@ -168,17 +168,31 @@ function parseItem(item: Element): LetterboxdEntry {
 		review: extractReviewText(description),
 		pubDate: parseDate(pubDateRaw),
 		containsSpoilers,
-		tags: [TAGS_PENDING_FROM_RSS],
+		tags: [], // Tags are fetched separately from viewing pages
 	};
 }
 
 /**
+ * Progress callback for RSS fetch operations
+ * @param current - Current entry being processed (1-indexed)
+ * @param total - Total number of entries
+ * @param filmTitle - Title of current film being processed
+ */
+export type RSSProgressCallback = (current: number, total: number, filmTitle: string) => void;
+
+/**
  * Fetches and parses the RSS feed for a Letterboxd user
+ * Also fetches tags from each viewing page (requires additional HTTP requests)
+ *
  * @param username - Letterboxd username
- * @returns Array of diary entries
+ * @param onProgress - Optional callback for progress updates
+ * @returns Array of diary entries with tags populated
  * @throws Error if fetch fails or XML is invalid
  */
-export async function fetchLetterboxdRSS(username: string): Promise<LetterboxdEntry[]> {
+export async function fetchLetterboxdRSS(
+	username: string,
+	onProgress?: RSSProgressCallback
+): Promise<LetterboxdEntry[]> {
 	if (!username) {
 		throw new Error("Letterboxd username is required");
 	}
@@ -210,6 +224,20 @@ export async function fetchLetterboxdRSS(username: string): Promise<LetterboxdEn
 	items.forEach((item) => {
 		entries.push(parseItem(item));
 	});
+
+	// Fetch tags from each viewing page
+	const totalEntries = entries.length;
+	for (let i = 0; i < totalEntries; i++) {
+		const entry = entries[i];
+
+		if (onProgress) {
+			onProgress(i + 1, totalEntries, entry.filmTitle);
+		}
+
+		if (entry.link) {
+			entry.tags = await fetchTagsFromViewingPage(entry.link);
+		}
+	}
 
 	return entries;
 }

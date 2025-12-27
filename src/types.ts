@@ -1,6 +1,3 @@
-/** Sentinel value for tags when imported from RSS (which doesn't include tags) */
-export const TAGS_PENDING_FROM_RSS = "_pending_csv_import";
-
 /**
  * Notification verbosity levels for sync operations
  * - silent: No notifications during sync
@@ -39,7 +36,7 @@ export interface LetterboxdEntry {
 	pubDate: string;
 	/** Whether the review contains spoilers */
 	containsSpoilers: boolean;
-	/** Tags from Letterboxd (only available via CSV import, sentinel value from RSS) */
+	/** Tags from Letterboxd (fetched from viewing pages for RSS, parsed from CSV) */
 	tags: string[];
 }
 

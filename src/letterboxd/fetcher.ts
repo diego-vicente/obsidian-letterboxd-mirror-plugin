@@ -31,6 +31,34 @@ export function extractViewingIdFromHtml(html: string): string | null {
 }
 
 /**
+ * Extracts tags from a Letterboxd viewing page HTML
+ * Looks for: <ul class="tags">...<a href="...">tag name</a>...</ul>
+ *
+ * @returns Array of tag strings, empty array if no tags found
+ */
+export function extractTagsFromHtml(html: string): string[] {
+	const tags: string[] = [];
+
+	// Match the tags <ul> block
+	const tagsBlockMatch = html.match(/<ul\s+class="tags">([\s\S]*?)<\/ul>/);
+	if (!tagsBlockMatch) {
+		return tags;
+	}
+
+	// Extract individual tag links: <a href="/username/tag/tag-name/films/">tag name</a>
+	const tagLinkRegex = /<a\s+href="[^"]+\/tag\/[^"]+">([^<]+)<\/a>/g;
+	let match;
+	while ((match = tagLinkRegex.exec(tagsBlockMatch[1])) !== null) {
+		const tagText = match[1].trim();
+		if (tagText) {
+			tags.push(tagText);
+		}
+	}
+
+	return tags;
+}
+
+/**
  * Extracts the film slug from a Letterboxd user review page HTML
  * Looks for: data-item-slug="the-revenant-2015"
  * Used internally to construct film page URL for TMDB ID extraction.
@@ -129,4 +157,21 @@ export async function fetchLetterboxdPageData(
 export function extractViewingIdFromRssGuid(guid: string): string | null {
 	const match = guid.match(/^letterboxd-(?:review|watch)-(\d+)$/);
 	return match ? match[1] : null;
+}
+
+/**
+ * Fetches tags from a Letterboxd viewing page
+ *
+ * @param viewingUrl - The full URL to the viewing page (from RSS <link>)
+ * @returns Array of tags, empty array on error or if no tags
+ */
+export async function fetchTagsFromViewingPage(viewingUrl: string): Promise<string[]> {
+	try {
+		const html = await fetchPage(viewingUrl);
+		return extractTagsFromHtml(html);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Unknown error";
+		console.warn(`Letterboxd: Failed to fetch tags from ${viewingUrl}: ${message}`);
+		return [];
+	}
 }

@@ -1,7 +1,6 @@
 import { normalizePath, TFile, TFolder } from "obsidian";
 import type LetterboxdPlugin from "../main";
 import type { LetterboxdEntry, LetterboxdSettings } from "../types";
-import { TAGS_PENDING_FROM_RSS } from "../types";
 import { fetchLetterboxdRSS } from "../letterboxd/parser";
 import { parseLetterboxdExport } from "../letterboxd/csv-parser";
 import { getExistingTmdbIds } from "../tmdb/sync";
@@ -131,7 +130,16 @@ export async function syncDiary(plugin: LetterboxdPlugin): Promise<SyncResult> {
 	try {
 		notify("Letterboxd: Fetching diary...", notificationLevel, "progress");
 
-		const allEntries = await fetchLetterboxdRSS(username);
+		const allEntries = await fetchLetterboxdRSS(username, (current, total, filmTitle) => {
+			// Update notice periodically to show progress
+			if (current % 5 === 0 || current === total) {
+				notify(
+					`Letterboxd: Fetching entry ${current}/${total}...`,
+					notificationLevel,
+					"progress"
+				);
+			}
+		});
 		const entries = syncReviewsOnly
 			? allEntries.filter((e) => e.review.length > 0)
 			: allEntries;
@@ -295,7 +303,7 @@ function isEmptyValue(value: string): boolean {
 /**
  * Checks if a new value should replace the existing value
  * - Don't replace immutable fields (guid, tmdbId, posterUrl)
- * - Don't replace if new value is empty/null (EXCEPT tags with sentinel)
+ * - Don't replace if new value is empty/null
  * - Don't replace if values are equal (after normalization)
  * - For dates, don't replace if only time portion differs
  */
@@ -303,11 +311,6 @@ function shouldUpdateValue(varName: string, newValue: string, existingValue: str
 	// Never overwrite certain fields from CSV
 	if (IMMUTABLE_VARIABLES.has(varName)) {
 		return false;
-	}
-
-	// Special case: tags with sentinel should always be replaced (even with empty)
-	if (varName === "tags" && existingValue.includes(TAGS_PENDING_FROM_RSS)) {
-		return true;
 	}
 
 	// Don't overwrite with empty values
