@@ -150,9 +150,9 @@ export default class LetterboxdPlugin extends Plugin {
 				const csvResult = await importFromCSV(this, diaryCSV, reviewsCSV);
 
 				// If TMDB is enabled and we have new films, sync Film notes
-				if (this.settings.tmdbApiKey && csvResult.newTmdbIds.length > 0) {
-					new Notice(`TMDB: creating ${csvResult.newTmdbIds.length} film notes...`);
-					const tmdbResult = await syncFilmsFromTMDB(this, csvResult.newTmdbIds);
+				if (this.settings.tmdbApiKey && csvResult.createdTmdbIds.length > 0) {
+					new Notice(`TMDB: creating ${csvResult.createdTmdbIds.length} film notes...`);
+					const tmdbResult = await syncFilmsFromTMDB(this, csvResult.createdTmdbIds);
 					if (tmdbResult.created > 0 || tmdbResult.errors > 0) {
 						const parts: string[] = [];
 						if (tmdbResult.created > 0)

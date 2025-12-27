@@ -444,23 +444,19 @@ describe("E2E 3: CSV + Existing Notes", () => {
 		cleanupTempVault(vaultPath);
 	});
 
-	it("updates frontmatter of existing notes from CSV", async () => {
+	it("skips existing notes from CSV when GUID matches", async () => {
 		const plugin = new MockPlugin(vaultPath, {
 			username: TEST_USERNAME,
 			folderPath: "Letterboxd",
 		});
 
-		// First, sync from RSS to create notes with tags from viewing pages
+		// First, sync from RSS to create notes
 		await syncDiary(plugin as unknown as LetterboxdPlugin);
 
-		// Verify tags are present from RSS (now fetched from viewing pages)
-		const notes = listNotesInVault(vaultPath, "Letterboxd");
-		const dieHardNote = notes.find((n) => n.includes("Die Hard"));
-		let content = readNoteFromVault(vaultPath, `Letterboxd/${dieHardNote}.md`);
-		expect(content).toContain("at home");
-		expect(content).not.toContain("_pending_csv_import");
+		const notesAfterRss = listNotesInVault(vaultPath, "Letterboxd");
+		const noteCountAfterRss = notesAfterRss.length;
 
-		// Now import CSV - should skip since tags already match
+		// Now import CSV - should skip all since GUIDs already exist
 		const diaryCSV = readFixtureCSV("diary.csv");
 		const reviewsCSV = readFixtureCSV("reviews.csv");
 		const csvResult = await importFromCSV(
@@ -469,17 +465,17 @@ describe("E2E 3: CSV + Existing Notes", () => {
 			reviewsCSV
 		);
 
-		// Since RSS now provides tags, CSV import should mostly skip (no changes needed)
-		// Some notes may still be updated if other fields differ
-		expect(csvResult.errors.length).toBe(0);
+		// All entries should be skipped (already exist from RSS)
+		expect(csvResult.skipped).toBeGreaterThan(0);
+		expect(csvResult.created).toBe(0);
+		expect(csvResult.errors).toBe(0);
 
-		// Verify tags are still present
-		content = readNoteFromVault(vaultPath, `Letterboxd/${dieHardNote}.md`);
-		expect(content).not.toContain("_pending_csv_import");
-		expect(content).toContain("at home");
+		// No new notes created
+		const notesAfterCsv = listNotesInVault(vaultPath, "Letterboxd");
+		expect(notesAfterCsv.length).toBe(noteCountAfterRss);
 	});
 
-	it("preserves body content when updating frontmatter", async () => {
+	it("does not modify existing notes from CSV", async () => {
 		const plugin = new MockPlugin(vaultPath, {
 			username: TEST_USERNAME,
 			folderPath: "Letterboxd",
@@ -493,51 +489,14 @@ describe("E2E 3: CSV + Existing Notes", () => {
 		const dieHardNote = notes.find((n) => n.includes("Die Hard"));
 		const originalContent = readNoteFromVault(vaultPath, `Letterboxd/${dieHardNote}.md`);
 
-		// Extract body (everything after frontmatter)
-		const bodyMatch = originalContent.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
-		const originalBody = bodyMatch ? bodyMatch[1] : "";
-
 		// Import CSV
 		const diaryCSV = readFixtureCSV("diary.csv");
 		const reviewsCSV = readFixtureCSV("reviews.csv");
 		await importFromCSV(plugin as unknown as LetterboxdPlugin, diaryCSV, reviewsCSV);
 
-		// Verify body is preserved
-		const updatedContent = readNoteFromVault(vaultPath, `Letterboxd/${dieHardNote}.md`);
-		const updatedBodyMatch = updatedContent.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
-		const updatedBody = updatedBodyMatch ? updatedBodyMatch[1] : "";
-
-		expect(updatedBody).toBe(originalBody);
-	});
-
-	it("does not overwrite immutable fields (guid, tmdbId)", async () => {
-		const plugin = new MockPlugin(vaultPath, {
-			username: TEST_USERNAME,
-			folderPath: "Letterboxd",
-		});
-
-		// First, sync from RSS
-		await syncDiary(plugin as unknown as LetterboxdPlugin);
-
-		// Get original values
-		const notes = listNotesInVault(vaultPath, "Letterboxd");
-		const dieHardNote = notes.find((n) => n.includes("Die Hard"));
-		const originalContent = readNoteFromVault(vaultPath, `Letterboxd/${dieHardNote}.md`);
-
-		const originalGuidMatch = originalContent.match(/letterboxd_guid:\s*(\d+)/);
-		const originalTmdbMatch = originalContent.match(/tmdb_id:\s*(\d+)/);
-		const originalGuid = originalGuidMatch ? originalGuidMatch[1] : "";
-		const originalTmdb = originalTmdbMatch ? originalTmdbMatch[1] : "";
-
-		// Import CSV
-		const diaryCSV = readFixtureCSV("diary.csv");
-		const reviewsCSV = readFixtureCSV("reviews.csv");
-		await importFromCSV(plugin as unknown as LetterboxdPlugin, diaryCSV, reviewsCSV);
-
-		// Verify immutable fields are unchanged
-		const updatedContent = readNoteFromVault(vaultPath, `Letterboxd/${dieHardNote}.md`);
-		expect(updatedContent).toContain(`letterboxd_guid: ${originalGuid}`);
-		expect(updatedContent).toContain(`tmdb_id: ${originalTmdb}`);
+		// Verify content is unchanged (CSV doesn't modify existing notes)
+		const contentAfterCsv = readNoteFromVault(vaultPath, `Letterboxd/${dieHardNote}.md`);
+		expect(contentAfterCsv).toBe(originalContent);
 	});
 
 	it("creates new notes for entries not in vault", async () => {
@@ -556,7 +515,7 @@ describe("E2E 3: CSV + Existing Notes", () => {
 		);
 
 		expect(result.created).toBeGreaterThan(0);
-		expect(result.errors.length).toBe(0);
+		expect(result.errors).toBe(0);
 
 		// Verify notes exist
 		const notes = listNotesInVault(vaultPath, "Letterboxd");
@@ -598,12 +557,12 @@ describe("E2E 5: Full Pipeline", () => {
 		);
 
 		expect(csvResult.created).toBeGreaterThan(0);
-		expect(csvResult.newTmdbIds.length).toBeGreaterThan(0);
+		expect(csvResult.createdTmdbIds.length).toBeGreaterThan(0);
 
 		// Step 2: Create Film notes from TMDB IDs
 		const tmdbResult = await syncFilmsFromTMDB(
 			plugin as unknown as LetterboxdPlugin,
-			csvResult.newTmdbIds
+			csvResult.createdTmdbIds
 		);
 
 		expect(tmdbResult.created).toBeGreaterThan(0);
@@ -635,20 +594,20 @@ describe("E2E 5: Full Pipeline", () => {
 			reviewsCSV
 		);
 
-		// newTmdbIds should not have duplicates
-		const uniqueIds = new Set(csvResult.newTmdbIds);
-		expect(uniqueIds.size).toBe(csvResult.newTmdbIds.length);
+		// createdTmdbIds should not have duplicates
+		const uniqueIds = new Set(csvResult.createdTmdbIds);
+		expect(uniqueIds.size).toBe(csvResult.createdTmdbIds.length);
 
 		// Create film notes
 		const tmdbResult = await syncFilmsFromTMDB(
 			plugin as unknown as LetterboxdPlugin,
-			csvResult.newTmdbIds
+			csvResult.createdTmdbIds
 		);
 
 		// Running again should create 0 new notes
 		const tmdbResult2 = await syncFilmsFromTMDB(
 			plugin as unknown as LetterboxdPlugin,
-			csvResult.newTmdbIds
+			csvResult.createdTmdbIds
 		);
 
 		expect(tmdbResult2.created).toBe(0);
@@ -672,7 +631,7 @@ describe("E2E 5: Full Pipeline", () => {
 			reviewsCSV
 		);
 
-		await syncFilmsFromTMDB(plugin as unknown as LetterboxdPlugin, csvResult.newTmdbIds);
+		await syncFilmsFromTMDB(plugin as unknown as LetterboxdPlugin, csvResult.createdTmdbIds);
 
 		// Find Die Hard film note
 		const filmNotes = listNotesInVault(vaultPath, "Films");
