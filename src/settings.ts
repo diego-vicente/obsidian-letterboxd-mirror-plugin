@@ -6,33 +6,33 @@ import { TemplateEditorModal } from "./ui/template-editor-modal";
 /** Debounce delay for saving settings (ms) */
 const SETTINGS_SAVE_DEBOUNCE_MS = 500;
 
-/** Default note template - loaded from templates/default-note.md at build time */
+/** Default note template using Eta syntax */
 const DEFAULT_NOTE_TEMPLATE = `---
-film: "[[{{filmTitle}} ({{filmYear}})]]"
-rating: {{userRatingNoOver10}}
-watched_date: {{watchedDate}}
-letterboxd_url: {{link yaml=true}}
-tmdb_id: {{tmdbId}}
-poster: {{posterUrl yaml=true}}
-letterboxd_guid: {{guid}}
-letterboxd_tags: {{tags yaml=true}}
+film: "[[<%= it.filmTitle %> (<%= it.filmYear %>)]]"
+rating: <%= it.userRatingNoOver10 %>
+watched_date: <%= it.watchedDate %>
+letterboxd_url: <%= it.link.yaml() %>
+tmdb_id: <%= it.tmdbId %>
+poster: <%= it.posterUrl.yaml() %>
+letterboxd_guid: <%= it.guid %>
+letterboxd_tags: <%= it.tags.yaml() %>
 ---
 
-# [[{{filmTitle}} ({{filmYear}})]]
+# [[<%= it.filmTitle %> (<%= it.filmYear %>)]]
 
-{{posterUrl skipEmpty=true prefix="![Poster](" suffix=")"}}
+<% if (!it.posterUrl.isEmpty()) { %>![Poster](<%= it.posterUrl %>)
+<% } %>
+**Rating**: <%= it.userRatingStars %>
+**Watched**: <%= it.watchedDate %><% if (it.rewatch.isTrue()) { %> (rewatch)<% } %>
 
-**Rating**: {{userRatingStars}}
-**Watched**: {{watchedDate}}{{#if rewatch}} (rewatch){{/if}}
-
-{{review skipEmpty=true quote=true}}
-
+<% if (!it.review.isEmpty()) { %><%= it.review.quote() %>
+<% } %>
 ---
-[View on Letterboxd]({{link}})
+[View on Letterboxd](<%= it.link %>)
 `;
 
-/** Default filename template */
-const DEFAULT_FILENAME_TEMPLATE = "{{watchedDate}} - {{filmTitle}}";
+/** Default filename template using Eta syntax */
+const DEFAULT_FILENAME_TEMPLATE = "<%= it.watchedDate %> - <%= it.filmTitle %>";
 
 /** Default folder for diary notes */
 const DEFAULT_FOLDER_PATH = "Letterboxd";
@@ -60,8 +60,8 @@ const NOTIFICATION_LEVELS: Record<string, NotificationLevel> = {
 /** Default folder for Film notes */
 const DEFAULT_TMDB_FOLDER_PATH = "Films";
 
-/** Default filename template for Film notes */
-const DEFAULT_TMDB_FILENAME_TEMPLATE = "{{title}} ({{year}})";
+/** Default filename template for Film notes using Eta syntax */
+const DEFAULT_TMDB_FILENAME_TEMPLATE = "<%= it.title %> (<%= it.year %>)";
 
 /** Default frontmatter key for TMDB ID */
 const DEFAULT_TMDB_ID_KEY = "tmdb_id";
@@ -118,38 +118,38 @@ const TMDB_LANGUAGES: Record<string, string> = {
 	Galician: "gl-ES",
 };
 
-/** Default note template for Film notes */
+/** Default note template for Film notes using Eta syntax */
 const DEFAULT_TMDB_NOTE_TEMPLATE = `---
-title: "{{title}}"
-original_title: "{{originalTitle}}"
-year: {{year}}
-release_date: {{releaseDate}}
-runtime: {{runtime}}
-tmdb_id: {{tmdbId}}
-imdb_id: "{{imdbId}}"
-tmdb_rating: {{tmdbRating}}
-genres: {{genres yaml=true}}
-directors: {{directors yaml=true link=true}}
-cast: {{cast yaml=true link=true}}
-poster: "{{posterUrlL}}"
+title: <%= it.title.yaml() %>
+original_title: <%= it.originalTitle.yaml() %>
+year: <%= it.year %>
+release_date: <%= it.releaseDate %>
+runtime: <%= it.runtime %>
+tmdb_id: <%= it.tmdbId %>
+imdb_id: <%= it.imdbId.yaml() %>
+tmdb_rating: <%= it.tmdbRating %>
+genres: <%= it.genres.yaml() %>
+directors: <%= it.directors.link().yaml() %>
+cast: <%= it.cast.link().yaml() %>
+poster: <%= it.posterUrlL.yaml() %>
 ---
 
-# {{title}} ({{year}})
+# <%= it.title %> (<%= it.year %>)
 
-{{posterUrlL skipEmpty=true prefix="![Poster](" suffix=")"}}
-
-{{tagline quote=true bold=true}}
-{{overview quote=true}}
-
-**Runtime**: {{runtimeFormatted}}
-**Genres**: {{genreList}}
+<% if (!it.posterUrlL.isEmpty()) { %>![Poster](<%= it.posterUrlL %>)
+<% } %>
+<% if (!it.tagline.isEmpty()) { %><%= it.tagline.bold().quote() %>
+<% } %><% if (!it.overview.isEmpty()) { %><%= it.overview.quote() %>
+<% } %>
+**Runtime**: <%= it.runtimeFormatted %>
+**Genres**: <%= it.genreList %>
 
 ## Cast
 
-{{castWithRoles bullet=true linkActors=true}}
+<%= it.castWithRoles.linkActors().bullet() %>
 
 ---
-[TMDB]({{tmdbUrl}}){{#if imdbId}} | [IMDb](https://imdb.com/title/{{imdbId}}){{/if}}
+[TMDB](<%= it.tmdbUrl %>)<% if (!it.imdbId.isEmpty()) { %> | [IMDb](https://imdb.com/title/<%= it.imdbId %>)<% } %>
 `;
 
 export const DEFAULT_SETTINGS: LetterboxdSettings = {
@@ -275,10 +275,10 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 			.setName("Filename template")
 			.setDesc(
 				createDescWithVariables("Available: ", [
-					"{{filmTitle}}",
-					"{{filmYear}}",
-					"{{watchedDate}}",
-					"{{tmdbId}}",
+					"it.filmTitle",
+					"it.filmYear",
+					"it.watchedDate",
+					"it.tmdbId",
 				])
 			)
 			.addText((text) => {
@@ -379,11 +379,11 @@ export class LetterboxdSettingTab extends PluginSettingTab {
 			.setName("Film filename template")
 			.setDesc(
 				createDescWithVariables("Available: ", [
-					"{{title}}",
-					"{{originalTitle}}",
-					"{{year}}",
-					"{{tmdbId}}",
-					"{{imdbId}}",
+					"it.title",
+					"it.originalTitle",
+					"it.year",
+					"it.tmdbId",
+					"it.imdbId",
 				])
 			)
 			.addText((text) => {

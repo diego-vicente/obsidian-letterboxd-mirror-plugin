@@ -41,5 +41,8 @@
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.51.0",
 		"vitest": "^4.0.15"
+	},
+	"dependencies": {
+		"eta": "^4.5.0"
 	}
 }
