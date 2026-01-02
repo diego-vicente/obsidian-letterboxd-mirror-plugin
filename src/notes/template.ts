@@ -3,29 +3,35 @@ import {
 	renderTemplate as etaRender,
 	generateFilename as etaGenerateFilename,
 } from "../eta/engine";
-import { str, arr, num, bool } from "../eta/fluent";
+import { str, arr, num, bool, rating } from "../eta/fluent";
+import type {
+	FluentString,
+	FluentNumber,
+	FluentBoolean,
+	FluentArray,
+	FluentRating,
+} from "../eta/fluent";
 
 /**
  * Wrapped Letterboxd entry data for Eta templates
  * All properties are fluent wrappers enabling chainable methods
  */
 interface WrappedLetterboxdEntry {
-	filmTitle: ReturnType<typeof str>;
-	filmYear: ReturnType<typeof num>;
-	userRatingNoOver5: ReturnType<typeof str>;
-	userRatingNoOver10: ReturnType<typeof str>;
-	userRatingStars: ReturnType<typeof str>;
-	watchedDate: ReturnType<typeof str>;
-	watchedDatetime: ReturnType<typeof str>;
-	rewatch: ReturnType<typeof bool>;
-	link: ReturnType<typeof str>;
-	tmdbId: ReturnType<typeof str>;
-	posterUrl: ReturnType<typeof str>;
-	guid: ReturnType<typeof str>;
-	review: ReturnType<typeof str>;
-	pubDate: ReturnType<typeof str>;
-	containsSpoilers: ReturnType<typeof bool>;
-	tags: ReturnType<typeof arr>;
+	filmTitle: FluentString;
+	filmYear: FluentNumber;
+	/** User rating with .over(base) and .stars() methods */
+	userRating: FluentRating;
+	watchedDate: FluentString;
+	watchedDatetime: FluentString;
+	rewatch: FluentBoolean;
+	link: FluentString;
+	tmdbId: FluentString;
+	posterUrl: FluentString;
+	guid: FluentString;
+	review: FluentString;
+	pubDate: FluentString;
+	containsSpoilers: FluentBoolean;
+	tags: FluentArray;
 }
 
 /**
@@ -35,9 +41,7 @@ function wrapLetterboxdEntry(entry: LetterboxdEntry): WrappedLetterboxdEntry {
 	return {
 		filmTitle: str(entry.filmTitle),
 		filmYear: num(entry.filmYear),
-		userRatingNoOver5: str(entry.userRatingNo !== null ? String(entry.userRatingNo) : ""),
-		userRatingNoOver10: str(entry.userRatingNo !== null ? String(entry.userRatingNo * 2) : ""),
-		userRatingStars: str(entry.userRatingStars),
+		userRating: rating(entry.userRatingNo),
 		watchedDate: str(entry.watchedDate),
 		watchedDatetime: str(entry.watchedDate ? `${entry.watchedDate}T00:00` : ""),
 		rewatch: bool(entry.rewatch),

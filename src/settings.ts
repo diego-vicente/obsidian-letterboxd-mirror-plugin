@@ -9,7 +9,7 @@ const SETTINGS_SAVE_DEBOUNCE_MS = 500;
 /** Default note template using Eta syntax */
 const DEFAULT_NOTE_TEMPLATE = `---
 film: "[[<%= it.filmTitle %> (<%= it.filmYear %>)]]"
-rating: <%= it.userRatingNoOver10 %>
+rating: <%= it.userRating.over(10) %>
 watched_date: <%= it.watchedDate %>
 letterboxd_url: <%= it.link.yaml() %>
 tmdb_id: <%= it.tmdbId %>
@@ -22,7 +22,7 @@ letterboxd_tags: <%= it.tags.yaml() %>
 
 <% if (!it.posterUrl.isEmpty()) { %>![Poster](<%= it.posterUrl %>)
 <% } %>
-**Rating**: <%= it.userRatingStars %>
+**Rating**: <%= it.userRating.stars() %>
 **Watched**: <%= it.watchedDate %><% if (it.rewatch.isTrue()) { %> (rewatch)<% } %>
 
 <% if (!it.review.isEmpty()) { %><%= it.review.quote() %>
@@ -131,18 +131,18 @@ tmdb_rating: <%= it.tmdbRating %>
 genres: <%= it.genres.yaml() %>
 directors: <%= it.directors.link().yaml() %>
 cast: <%= it.cast.link().yaml() %>
-poster: <%= it.posterUrlL.yaml() %>
+poster: <%= it.poster.size("L").yaml() %>
 ---
 
 # <%= it.title %> (<%= it.year %>)
 
-<% if (!it.posterUrlL.isEmpty()) { %>![Poster](<%= it.posterUrlL %>)
+<% if (!it.poster.isEmpty()) { %>![Poster](<%= it.poster.size("L") %>)
 <% } %>
 <% if (!it.tagline.isEmpty()) { %><%= it.tagline.bold().quote() %>
 <% } %><% if (!it.overview.isEmpty()) { %><%= it.overview.quote() %>
 <% } %>
 **Runtime**: <%= it.runtimeFormatted %>
-**Genres**: <%= it.genreList %>
+**Genres**: <%= it.genres %>
 
 ## Cast
 

@@ -1,6 +1,6 @@
 ---
 film: "[[<%= it.filmTitle %>]]"
-rating: <%= it.userRatingNoOver5 %>
+rating: <%= it.userRating.over(5) %>
 watched_date: <%= it.watchedDate %>
 letterboxd_url: <%= it.link.yaml() %>
 tmdb_id: <%= it.tmdbId %>
@@ -13,7 +13,7 @@ letterboxd_tags: <%= it.tags.yaml() %>
 
 <% if (!it.posterUrl.isEmpty()) { %>![Poster](<%= it.posterUrl %>)
 <% } %>
-**Rating**: <%= it.userRatingStars %>
+**Rating**: <%= it.userRating.stars() %>
 **Watched**: <%= it.watchedDate %><% if (it.rewatch.isTrue()) { %> (rewatch)<% } %>
 
 <% if (!it.review.isEmpty()) { %><%= it.review.quote() %>

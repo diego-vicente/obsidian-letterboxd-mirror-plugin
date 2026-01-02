@@ -8,10 +8,12 @@ import {
 	FluentArray,
 	FluentNumber,
 	FluentBoolean,
+	FluentRating,
 	str,
 	arr,
 	num,
 	bool,
+	rating,
 } from "./fluent";
 
 // ============================================================================
@@ -145,4 +147,16 @@ export function wrapData<T extends Record<string, RawValue | null | undefined>>(
 // Exports
 // ============================================================================
 
-export { eta, FluentString, FluentArray, FluentNumber, FluentBoolean, str, arr, num, bool };
+export {
+	eta,
+	FluentString,
+	FluentArray,
+	FluentNumber,
+	FluentBoolean,
+	FluentRating,
+	str,
+	arr,
+	num,
+	bool,
+	rating,
+};

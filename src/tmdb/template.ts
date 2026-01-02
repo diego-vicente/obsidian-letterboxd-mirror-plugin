@@ -3,7 +3,8 @@ import {
 	renderTemplate as etaRender,
 	generateFilename as etaGenerateFilename,
 } from "../eta/engine";
-import { str, arr, num, bool, FluentArray } from "../eta/fluent";
+import { str, arr, num, poster, backdrop, FluentArray, FluentImage } from "../eta/fluent";
+import type { FluentString, FluentNumber } from "../eta/fluent";
 
 /**
  * Wrapped TMDB movie data for Eta templates
@@ -11,63 +12,49 @@ import { str, arr, num, bool, FluentArray } from "../eta/fluent";
  */
 interface WrappedTMDBMovie {
 	// Core identifiers
-	tmdbId: ReturnType<typeof num>;
-	imdbId: ReturnType<typeof str>;
-	tmdbUrl: ReturnType<typeof str>;
+	tmdbId: FluentNumber;
+	imdbId: FluentString;
+	tmdbUrl: FluentString;
 
 	// Titles
-	title: ReturnType<typeof str>;
-	originalTitle: ReturnType<typeof str>;
-	originalLanguage: ReturnType<typeof str>;
+	title: FluentString;
+	originalTitle: FluentString;
+	originalLanguage: FluentString;
 
 	// Dates and timing
-	year: ReturnType<typeof num>;
-	releaseDate: ReturnType<typeof str>;
-	runtime: ReturnType<typeof num>;
-	runtimeFormatted: ReturnType<typeof str>;
+	year: FluentNumber;
+	releaseDate: FluentString;
+	runtime: FluentNumber;
+	runtimeFormatted: FluentString;
 
 	// Content
-	overview: ReturnType<typeof str>;
-	tagline: ReturnType<typeof str>;
+	overview: FluentString;
+	tagline: FluentString;
 
 	// Genres
-	genres: ReturnType<typeof arr>;
-	genreList: ReturnType<typeof str>;
+	genres: FluentArray;
 
 	// Ratings
-	tmdbRating: ReturnType<typeof num>;
-	tmdbVoteCount: ReturnType<typeof num>;
+	tmdbRating: FluentNumber;
+	tmdbVoteCount: FluentNumber;
 
 	// Financials
-	budget: ReturnType<typeof num>;
-	revenue: ReturnType<typeof num>;
+	budget: FluentNumber;
+	revenue: FluentNumber;
 
-	// Poster URLs
-	posterUrlXXS: ReturnType<typeof str>;
-	posterUrlXS: ReturnType<typeof str>;
-	posterUrlS: ReturnType<typeof str>;
-	posterUrlM: ReturnType<typeof str>;
-	posterUrlL: ReturnType<typeof str>;
-	posterUrlXL: ReturnType<typeof str>;
-	posterUrlOG: ReturnType<typeof str>;
-
-	// Backdrop URLs
-	backdropUrlS: ReturnType<typeof str>;
-	backdropUrlM: ReturnType<typeof str>;
-	backdropUrlL: ReturnType<typeof str>;
-	backdropUrlOG: ReturnType<typeof str>;
+	// Images - use .size("L") or .size(500)
+	poster: FluentImage;
+	backdrop: FluentImage;
 
 	// Production info
-	productionCompanies: ReturnType<typeof arr>;
-	productionCompanyList: ReturnType<typeof str>;
-	spokenLanguages: ReturnType<typeof arr>;
-	spokenLanguageList: ReturnType<typeof str>;
-	collection: ReturnType<typeof str>;
+	productionCompanies: FluentArray;
+	spokenLanguages: FluentArray;
+	collection: FluentString;
 
 	// Credits
-	cast: ReturnType<typeof arr>;
-	characters: ReturnType<typeof arr>;
-	directors: ReturnType<typeof arr>;
+	cast: FluentArray;
+	characters: FluentArray;
+	directors: FluentArray;
 
 	// Special: Cast with roles helper
 	castWithRoles: CastWithRolesHelper;
@@ -174,6 +161,12 @@ class CastWithRolesHelper {
  * Transforms a TMDBMovie into wrapped data for Eta templates
  */
 function wrapTMDBMovie(movie: TMDBMovie): WrappedTMDBMovie {
+	// Extract poster and backdrop paths from the full URLs
+	// URLs are like: https://image.tmdb.org/t/p/w500/abc123.jpg
+	// We need just: /abc123.jpg
+	const posterPath = extractImagePath(movie.posterUrlOG);
+	const backdropPath = extractImagePath(movie.backdropUrlOG);
+
 	return {
 		// Core identifiers
 		tmdbId: num(movie.tmdbId),
@@ -197,7 +190,6 @@ function wrapTMDBMovie(movie: TMDBMovie): WrappedTMDBMovie {
 
 		// Genres
 		genres: arr(movie.genres),
-		genreList: str(movie.genreList),
 
 		// Ratings
 		tmdbRating: num(movie.tmdbRating),
@@ -207,26 +199,13 @@ function wrapTMDBMovie(movie: TMDBMovie): WrappedTMDBMovie {
 		budget: num(movie.budget),
 		revenue: num(movie.revenue),
 
-		// Poster URLs
-		posterUrlXXS: str(movie.posterUrlXXS),
-		posterUrlXS: str(movie.posterUrlXS),
-		posterUrlS: str(movie.posterUrlS),
-		posterUrlM: str(movie.posterUrlM),
-		posterUrlL: str(movie.posterUrlL),
-		posterUrlXL: str(movie.posterUrlXL),
-		posterUrlOG: str(movie.posterUrlOG),
-
-		// Backdrop URLs
-		backdropUrlS: str(movie.backdropUrlS),
-		backdropUrlM: str(movie.backdropUrlM),
-		backdropUrlL: str(movie.backdropUrlL),
-		backdropUrlOG: str(movie.backdropUrlOG),
+		// Images
+		poster: poster(posterPath),
+		backdrop: backdrop(backdropPath),
 
 		// Production info
 		productionCompanies: arr(movie.productionCompanies),
-		productionCompanyList: str(movie.productionCompanyList),
 		spokenLanguages: arr(movie.spokenLanguages),
-		spokenLanguageList: str(movie.spokenLanguageList),
 		collection: str(movie.collection),
 
 		// Credits
@@ -237,6 +216,18 @@ function wrapTMDBMovie(movie: TMDBMovie): WrappedTMDBMovie {
 		// Special helper
 		castWithRoles: new CastWithRolesHelper(movie.cast, movie.characters),
 	};
+}
+
+/**
+ * Extracts the image path from a full TMDB URL
+ * @param url - Full URL like "https://image.tmdb.org/t/p/original/abc123.jpg"
+ * @returns Path like "/abc123.jpg" or empty string if no URL
+ */
+function extractImagePath(url: string): string {
+	if (!url) return "";
+	// Match the path after the size segment (e.g., /original, /w500)
+	const match = url.match(/\/t\/p\/[^/]+(\/.+)$/);
+	return match ? match[1] : "";
 }
 
 /**
