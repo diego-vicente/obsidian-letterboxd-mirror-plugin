@@ -4,8 +4,6 @@ import {
 	FluentArray,
 	FluentNumber,
 	FluentBoolean,
-	FluentRating,
-	FluentImage,
 	str,
 	arr,
 	num,
