@@ -6,8 +6,6 @@ Welcome to the Letterboxd Mirror plugin documentation.
 
 - [Settings](Settings.md) — All configuration options explained
 - [Template Variables](Template-Variables.md) — Variables for diary and film notes
-- [CSV Import](CSV-Import.md) — Importing your Letterboxd data export
-- [TMDB Integration](TMDB-Integration.md) — Setting up The Movie Database integration
 
 ## Quick Links
 

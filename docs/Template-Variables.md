@@ -1,6 +1,16 @@
 # Template Variables
 
-Templates use `{{variable}}` syntax for dynamic content. Variables can include modifiers for formatting.
+Templates use [Eta](https://eta.js.org/) syntax with fluent method chaining. The basic syntax is `<%= it.variable %>` for outputting values, and `<% %>` for JavaScript logic.
+
+## Syntax Overview
+
+```eta
+<%= it.title %>                    Output a value
+<%= it.genres.link().bullet() %>   Chain methods for formatting
+<% if (it.rewatch.isTrue()) { %>   JavaScript conditionals
+  (rewatch)
+<% } %>
+```
 
 ## Diary Note Variables
 
@@ -8,22 +18,20 @@ These variables are available in diary note templates.
 
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
-| `{{filmTitle}}` | string | Film title | The Godfather |
-| `{{filmYear}}` | number | Release year | 1972 |
-| `{{watchedDate}}` | string | Date watched (YYYY-MM-DD) | 2024-01-15 |
-| `{{watchedDatetime}}` | string | Date and time watched | 2024-01-15T00:00 |
-| `{{userRatingNo}}` | number | Rating (0.5-5 scale) | 4.5 |
-| `{{userRatingNoOver10}}` | number | Rating (1-10 scale) | 9 |
-| `{{userRatingStars}}` | string | Rating as star characters | ★★★★½ |
-| `{{rewatch}}` | boolean | Is this a rewatch? | true |
-| `{{review}}` | string | Your review text | |
-| `{{link}}` | string | Letterboxd diary entry URL | |
-| `{{posterUrl}}` | string | Film poster image URL | |
-| `{{tmdbId}}` | string | TMDB movie ID | 238 |
-| `{{guid}}` | string | Unique viewing ID | 1093163294 |
-| `{{pubDate}}` | string | Date logged on Letterboxd | 2024-01-16 |
-| `{{containsSpoilers}}` | boolean | Review has spoiler warning | false |
-| `{{tags}}` | array | Your Letterboxd tags | ["cinema", "favorites"] |
+| `it.filmTitle` | string | Film title | The Godfather |
+| `it.filmYear` | number | Release year | 1972 |
+| `it.watchedDate` | string | Date watched (YYYY-MM-DD) | 2024-01-15 |
+| `it.watchedDatetime` | string | Date and time watched | 2024-01-15T00:00 |
+| `it.userRating` | rating | User rating (see [Rating Methods](#rating-methods)) | 4.5 |
+| `it.rewatch` | boolean | Is this a rewatch? | true |
+| `it.review` | string | Your review text | |
+| `it.link` | string | Letterboxd diary entry URL | |
+| `it.posterUrl` | string | Film poster image URL | |
+| `it.tmdbId` | string | TMDB movie ID | 238 |
+| `it.guid` | string | Unique viewing ID | 1093163294 |
+| `it.pubDate` | string | Date logged on Letterboxd | 2024-01-16 |
+| `it.containsSpoilers` | boolean | Review has spoiler warning | false |
+| `it.tags` | array | Your Letterboxd tags | ["cinema", "favorites"] |
 
 ## Film Note Variables (TMDB)
 
@@ -33,232 +41,344 @@ These variables are available in Film note templates when TMDB integration is en
 
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
-| `{{tmdbId}}` | number | TMDB movie ID | 238 |
-| `{{title}}` | string | Movie title (localized) | The Godfather |
-| `{{originalTitle}}` | string | Original language title | The Godfather |
-| `{{originalLanguage}}` | string | Original language code | en |
-| `{{year}}` | number | Release year | 1972 |
-| `{{releaseDate}}` | string | Full release date | 1972-03-14 |
-| `{{runtime}}` | number | Runtime in minutes | 175 |
-| `{{runtimeFormatted}}` | string | Human-readable runtime | 2h 55m |
-| `{{overview}}` | string | Plot synopsis | |
-| `{{tagline}}` | string | Movie tagline | |
+| `it.tmdbId` | number | TMDB movie ID | 238 |
+| `it.title` | string | Movie title (localized) | The Godfather |
+| `it.originalTitle` | string | Original language title | The Godfather |
+| `it.originalLanguage` | string | Original language code | en |
+| `it.year` | number | Release year | 1972 |
+| `it.releaseDate` | string | Full release date | 1972-03-14 |
+| `it.runtime` | number | Runtime in minutes | 175 |
+| `it.runtimeFormatted` | string | Human-readable runtime | 2h 55m |
+| `it.overview` | string | Plot synopsis | |
+| `it.tagline` | string | Movie tagline | |
 
 ### Ratings & IDs
 
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
-| `{{tmdbRating}}` | number | TMDB community rating (0-10) | 8.7 |
-| `{{tmdbVoteCount}}` | number | Number of TMDB votes | 19847 |
-| `{{imdbId}}` | string | IMDb ID | tt0068646 |
-| `{{tmdbUrl}}` | string | TMDB page URL | |
+| `it.tmdbRating` | number | TMDB community rating (0-10) | 8.7 |
+| `it.tmdbVoteCount` | number | Number of TMDB votes | 19847 |
+| `it.imdbId` | string | IMDb ID | tt0068646 |
+| `it.tmdbUrl` | string | TMDB page URL | |
 
-### Categories
+### Categories & Production
 
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
-| `{{genres}}` | array | Genre names | ["Crime", "Drama"] |
-| `{{genreList}}` | string | Comma-separated genres | Crime, Drama |
-| `{{collection}}` | string | Collection name | The Godfather Collection |
+| `it.genres` | array | Genre names | ["Crime", "Drama"] |
+| `it.collection` | string | Collection name | The Godfather Collection |
+| `it.productionCompanies` | array | Company names | ["Paramount Pictures"] |
+| `it.spokenLanguages` | array | Language names | ["English", "Italian"] |
+| `it.budget` | number | Budget in dollars | 6000000 |
+| `it.revenue` | number | Revenue in dollars | 245066411 |
 
 ### People
 
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
-| `{{directors}}` | array | Director names | ["Francis Ford Coppola"] |
-| `{{cast}}` | array | Actor names | ["Marlon Brando", "Al Pacino"] |
-| `{{characters}}` | array | Character names (same order as cast) | ["Don Vito Corleone", "Michael Corleone"] |
-
-### Production
-
-| Variable | Type | Description | Example |
-|----------|------|-------------|---------|
-| `{{productionCompanies}}` | array | Company names | ["Paramount Pictures"] |
-| `{{productionCompanyList}}` | string | Comma-separated companies | Paramount Pictures |
-| `{{spokenLanguages}}` | array | Language names | ["English", "Italian"] |
-| `{{spokenLanguageList}}` | string | Comma-separated languages | English, Italian |
-| `{{budget}}` | number | Budget in dollars | 6000000 |
-| `{{revenue}}` | number | Revenue in dollars | 245066411 |
+| `it.directors` | array | Director names | ["Francis Ford Coppola"] |
+| `it.cast` | array | Actor names | ["Marlon Brando", "Al Pacino"] |
+| `it.characters` | array | Character names (same order as cast) | ["Don Vito Corleone", "Michael Corleone"] |
+| `it.castWithRoles` | special | Cast with character names (see [Cast with Roles](#cast-with-roles)) | |
 
 ### Images
 
-Poster images in various sizes:
+Images use the `.size()` method to select dimensions. You can use named sizes or pixel widths.
 
-| Variable | Size |
-|----------|------|
-| `{{posterUrlXXS}}` | 92px wide |
-| `{{posterUrlXS}}` | 154px wide |
-| `{{posterUrlS}}` | 185px wide |
-| `{{posterUrlM}}` | 342px wide |
-| `{{posterUrlL}}` | 500px wide |
-| `{{posterUrlXL}}` | 780px wide |
-| `{{posterUrlOG}}` | Original size |
+| Variable | Type | Description |
+|----------|------|-------------|
+| `it.poster` | image | Movie poster |
+| `it.backdrop` | image | Movie backdrop |
 
-Backdrop images:
+**Poster sizes:**
 
-| Variable | Size |
-|----------|------|
-| `{{backdropUrlS}}` | 300px wide |
-| `{{backdropUrlM}}` | 780px wide |
-| `{{backdropUrlL}}` | 1280px wide |
-| `{{backdropUrlOG}}` | Original size |
+| Name | Pixels | Example |
+|------|--------|---------|
+| XXS | 92 | `it.poster.size("XXS")` or `it.poster.size(92)` |
+| XS | 154 | `it.poster.size("XS")` or `it.poster.size(154)` |
+| S | 185 | `it.poster.size("S")` or `it.poster.size(185)` |
+| M | 342 | `it.poster.size("M")` or `it.poster.size(342)` |
+| L | 500 | `it.poster.size("L")` or `it.poster.size(500)` |
+| XL | 780 | `it.poster.size("XL")` or `it.poster.size(780)` |
+| OG | original | `it.poster.size("OG")` |
 
-## Modifiers
+**Backdrop sizes:**
 
-Modifiers change how a variable is rendered. Add them after the variable name.
+| Name | Pixels | Example |
+|------|--------|---------|
+| S | 300 | `it.backdrop.size("S")` or `it.backdrop.size(300)` |
+| M | 780 | `it.backdrop.size("M")` or `it.backdrop.size(780)` |
+| L | 1280 | `it.backdrop.size("L")` or `it.backdrop.size(1280)` |
+| OG | original | `it.backdrop.size("OG")` |
 
-### YAML Formatting
+---
 
+## Fluent Methods
+
+All variables support chainable methods for formatting. Methods are called with `.methodName()` syntax.
+
+### String Methods
+
+Available on string variables like `it.title`, `it.review`, `it.link`.
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `.link()` | Wrap in wiki-link brackets | `it.title.link()` → `[[The Godfather]]` |
+| `.bold()` | Apply bold formatting | `it.title.bold()` → `**The Godfather**` |
+| `.italic()` | Apply italic formatting | `it.title.italic()` → `*The Godfather*` |
+| `.quote()` | Convert to blockquote | `it.tagline.quote()` → `> An offer you can't refuse.` |
+| `.yaml()` | Wrap in YAML-safe quotes | `it.link.yaml()` → `"https://..."` |
+| `.prefix(str)` | Add text before | `it.title.prefix("Film: ")` → `Film: The Godfather` |
+| `.suffix(str)` | Add text after | `it.year.suffix(" AD")` → `1972 AD` |
+| `.isEmpty()` | Check if empty (for conditionals) | `<% if (!it.review.isEmpty()) { %>` |
+| `.toNative()` | Get raw JavaScript string | `it.title.toNative().toUpperCase()` |
+
+**Chaining example:**
+```eta
+<%= it.title.link().bold() %>
 ```
-{{variable yaml=true}}
+Output: `**[[The Godfather]]**`
+
+### Array Methods
+
+Available on array variables like `it.genres`, `it.cast`, `it.tags`.
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `.top(n)` | Take first n items | `it.cast.top(5)` |
+| `.link()` | Wrap each item in wiki-links | `it.cast.link()` → `[[Actor 1]], [[Actor 2]]` |
+| `.bold()` | Apply bold to each item | `it.genres.bold()` |
+| `.italic()` | Apply italic to each item | `it.genres.italic()` |
+| `.join(sep)` | Join with custom separator | `it.genres.join(" / ")` → `Crime / Drama` |
+| `.bullet()` | Format as bullet list | See below |
+| `.yaml()` | Format as YAML inline array | `["Crime", "Drama"]` |
+| `.yamlMultiline()` | Format as YAML multiline list | See below |
+| `.map(fn)` | Transform each item | `it.cast.map(x => x.toUpperCase())` |
+| `.filter(fn)` | Filter items | `it.tags.filter(t => t !== "watched")` |
+| `.isEmpty()` | Check if empty | `<% if (!it.tags.isEmpty()) { %>` |
+| `.toNative()` | Get raw JavaScript array | `it.genres.toNative().reverse()` |
+
+**Default output:** Arrays automatically output as comma-separated when used directly:
+```eta
+<%= it.genres %>
+```
+Output: `Crime, Drama`
+
+**Bullet list:**
+```eta
+<%= it.cast.top(3).link().bullet() %>
+```
+Output:
+```
+- [[Marlon Brando]]
+- [[Al Pacino]]
+- [[James Caan]]
 ```
 
-Outputs the value in YAML-safe format. Useful in frontmatter.
-
-- Strings with special characters are quoted
-- Arrays become YAML lists
-
-### Links
-
+**YAML formats:**
+```eta
+genres: <%= it.genres.yaml() %>
+tags:
+<%= it.tags.yamlMultiline() %>
 ```
-{{directors link=true}}
-```
-
-Wraps each item in Obsidian wikilinks: `[[Francis Ford Coppola]]`
-
-### Text Formatting
-
-```
-{{tagline quote=true}}    → > An offer you can't refuse.
-{{tagline bold=true}}     → **An offer you can't refuse.**
-{{tagline italic=true}}   → *An offer you can't refuse.*
+Output:
+```yaml
+genres: ["Crime", "Drama"]
+tags:
+  - favorite
+  - rewatch
 ```
 
-### Skip Empty
+### Number Methods
 
-```
-{{review skipEmpty=true}}
+Available on number variables like `it.year`, `it.runtime`, `it.tmdbRating`.
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `.times(n)` | Multiply by n | `it.runtime.times(60)` → seconds |
+| `.fixed(digits)` | Format with decimal places | `it.tmdbRating.fixed(1)` → `8.7` |
+| `.prefix(str)` | Add text before | `it.runtime.prefix("Runtime: ")` |
+| `.suffix(str)` | Add text after | `it.runtime.suffix(" min")` → `175 min` |
+| `.isZero()` | Check if zero | `<% if (!it.budget.isZero()) { %>` |
+| `.toNative()` | Get raw JavaScript number | `it.year.toNative() + 1` |
+
+### Boolean Methods
+
+Available on boolean variables like `it.rewatch`, `it.containsSpoilers`.
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `.isTrue()` | Check if true | `<% if (it.rewatch.isTrue()) { %>` |
+| `.isFalse()` | Check if false | `<% if (it.containsSpoilers.isFalse()) { %>` |
+| `.ifElse(a, b)` | Return a if true, b if false | `it.rewatch.ifElse("Rewatch", "First watch")` |
+| `.toNative()` | Get raw JavaScript boolean | |
+
+### Rating Methods
+
+The `it.userRating` variable has special methods for formatting ratings.
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `.over(base)` | Scale to different base | `it.userRating.over(10)` → 7 (from 3.5) |
+| `.stars()` | Convert to star characters | `it.userRating.stars()` → `★★★½` |
+| `.isRated()` | Check if rated | `<% if (it.userRating.isRated()) { %>` |
+| `.isUnrated()` | Check if unrated | `<% if (it.userRating.isUnrated()) { %>` |
+| `.toNative()` | Get raw number (or null) | |
+
+**Examples:**
+```eta
+Rating: <%= it.userRating.over(5) %>/5
+Rating: <%= it.userRating.over(10) %>/10
+Rating: <%= it.userRating.over(100) %>%
+Rating: <%= it.userRating.stars() %>
+Rating: <%= it.userRating.stars().bold() %>
 ```
 
-If the variable is empty, nothing is output (instead of an empty string or placeholder).
+### Image Methods
 
-### Prefix and Suffix
+The `it.poster` and `it.backdrop` variables have methods for selecting image sizes.
 
-```
-{{posterUrl prefix="![Poster](" suffix=")"}}
-```
+| Method | Description | Example |
+|--------|-------------|---------|
+| `.size(s)` | Get URL at size (name or pixels) | `it.poster.size("L")` or `it.poster.size(500)` |
+| `.url()` | Get URL at default size | `it.poster.url()` |
+| `.isEmpty()` | Check if image exists | `<% if (!it.poster.isEmpty()) { %>` |
+| `.toNative()` | Get raw image path | |
 
-Adds text before and after the value. Combined with `skipEmpty`, you can conditionally include formatting:
-
-```
-{{posterUrl skipEmpty=true prefix="![Poster](" suffix=")"}}
-```
-
-### Bullet Lists
-
-```
-{{cast bullet=true}}
-```
-
-Outputs each array item as a bullet point:
-```
-- Marlon Brando
-- Al Pacino
-- James Caan
+**Example:**
+```eta
+<% if (!it.poster.isEmpty()) { %>
+![Poster](<%= it.poster.size("L") %>)
+<% } %>
 ```
 
 ### Cast with Roles
 
-A special formatter for cast members that includes character names:
+The `it.castWithRoles` helper combines cast and character names.
 
-```
-{{castWithRoles bullet=true linkActors=true}}
-```
+| Method | Description |
+|--------|-------------|
+| `.top(n)` | Limit to first n cast members |
+| `.linkActors()` | Wrap actor names in wiki-links |
+| `.linkCharacters()` | Wrap character names in wiki-links |
+| `.bullet()` | Format as bullet list |
+| `.yaml()` | Format as YAML inline array |
+| `.yamlMultiline()` | Format as YAML multiline list |
 
+**Example:**
+```eta
+<%= it.castWithRoles.top(5).linkActors().bullet() %>
+```
 Output:
 ```
 - [[Marlon Brando]] as Don Vito Corleone
 - [[Al Pacino]] as Michael Corleone
+- [[James Caan]] as Sonny Corleone
 ```
 
-## Conditional Blocks
+---
 
-Use `{{#if variable}}...{{/if}}` for conditional content:
+## Conditionals
 
-```
-{{#if rewatch}}(rewatch){{/if}}
+Use standard JavaScript conditionals with `<% %>` tags:
 
-{{#if review}}
+```eta
+<% if (it.rewatch.isTrue()) { %>
+(rewatch)
+<% } %>
+
+<% if (!it.review.isEmpty()) { %>
 ## Review
-{{review}}
-{{/if}}
+<%= it.review.quote() %>
+<% } %>
 
-{{#if imdbId}}[IMDb](https://imdb.com/title/{{imdbId}}){{/if}}
+<% if (!it.imdbId.isEmpty()) { %>
+[IMDb](https://imdb.com/title/<%= it.imdbId %>)
+<% } %>
 ```
 
-The block is only rendered if the variable is truthy (not empty, not false, not null).
+---
+
+## Advanced: Custom JavaScript
+
+Since templates use Eta, you can write any JavaScript expression:
+
+```eta
+<%= it.title.toNative().toUpperCase() %>
+
+<%= it.genres.toNative().reverse().join(" | ") %>
+
+<%= it.year.toNative() >= 2000 ? "Modern" : "Classic" %>
+
+<% const rating = it.tmdbRating.toNative(); %>
+<% if (rating >= 8) { %>Highly rated!<% } %>
+```
+
+Use `.toNative()` to escape from fluent wrappers to raw JavaScript values.
+
+---
 
 ## Default Templates
 
 ### Default Diary Note Template
 
-```markdown
+```eta
 ---
-film: "[[{{filmTitle}} ({{filmYear}})]]"
-rating: {{userRatingNoOver10}}
-watched_date: {{watchedDate}}
-letterboxd_url: {{link yaml=true}}
-tmdb_id: {{tmdbId}}
-poster: {{posterUrl yaml=true}}
-letterboxd_guid: {{guid}}
-letterboxd_tags: {{tags yaml=true}}
+film: "[[<%= it.filmTitle %> (<%= it.filmYear %>)]]"
+rating: <%= it.userRating.over(10) %>
+watched_date: <%= it.watchedDate %>
+letterboxd_url: <%= it.link.yaml() %>
+tmdb_id: <%= it.tmdbId %>
+poster: <%= it.posterUrl.yaml() %>
+letterboxd_guid: <%= it.guid %>
+letterboxd_tags: <%= it.tags.yaml() %>
 ---
 
-# [[{{filmTitle}} ({{filmYear}})]]
+# [[<%= it.filmTitle %> (<%= it.filmYear %>)]]
 
-{{posterUrl skipEmpty=true prefix="![Poster](" suffix=")"}}
+<% if (!it.posterUrl.isEmpty()) { %>![Poster](<%= it.posterUrl %>)
+<% } %>
+**Rating**: <%= it.userRating.stars() %>
+**Watched**: <%= it.watchedDate %><% if (it.rewatch.isTrue()) { %> (rewatch)<% } %>
 
-**Rating**: {{userRatingStars}}
-**Watched**: {{watchedDate}}{{#if rewatch}} (rewatch){{/if}}
-
-{{review skipEmpty=true quote=true}}
-
+<% if (!it.review.isEmpty()) { %><%= it.review.quote() %>
+<% } %>
 ---
-[View on Letterboxd]({{link}})
+[View on Letterboxd](<%= it.link %>)
 ```
 
 ### Default Film Note Template
 
-```markdown
+```eta
 ---
-title: "{{title}}"
-original_title: "{{originalTitle}}"
-year: {{year}}
-release_date: {{releaseDate}}
-runtime: {{runtime}}
-tmdb_id: {{tmdbId}}
-imdb_id: "{{imdbId}}"
-tmdb_rating: {{tmdbRating}}
-genres: {{genres yaml=true}}
-directors: {{directors yaml=true link=true}}
-cast: {{cast yaml=true link=true}}
-poster: "{{posterUrlL}}"
+title: <%= it.title.yaml() %>
+original_title: <%= it.originalTitle.yaml() %>
+year: <%= it.year %>
+release_date: <%= it.releaseDate %>
+runtime: <%= it.runtime %>
+tmdb_id: <%= it.tmdbId %>
+imdb_id: <%= it.imdbId.yaml() %>
+tmdb_rating: <%= it.tmdbRating %>
+genres: <%= it.genres.yaml() %>
+directors: <%= it.directors.link().yaml() %>
+cast: <%= it.cast.link().yaml() %>
+poster: <%= it.poster.size("L").yaml() %>
 ---
 
-# {{title}} ({{year}})
+# <%= it.title %> (<%= it.year %>)
 
-{{posterUrlL skipEmpty=true prefix="![Poster](" suffix=")"}}
-
-{{tagline quote=true bold=true}}
-{{overview quote=true}}
-
-**Runtime**: {{runtimeFormatted}}
-**Genres**: {{genreList}}
+<% if (!it.poster.isEmpty()) { %>![Poster](<%= it.poster.size("L") %>)
+<% } %>
+<% if (!it.tagline.isEmpty()) { %><%= it.tagline.bold().quote() %>
+<% } %><% if (!it.overview.isEmpty()) { %><%= it.overview.quote() %>
+<% } %>
+**Runtime**: <%= it.runtimeFormatted %>
+**Genres**: <%= it.genres %>
 
 ## Cast
 
-{{castWithRoles bullet=true linkActors=true}}
+<%= it.castWithRoles.linkActors().bullet() %>
 
 ---
-[TMDB]({{tmdbUrl}}){{#if imdbId}} | [IMDb](https://imdb.com/title/{{imdbId}}){{/if}}
+[TMDB](<%= it.tmdbUrl %>)<% if (!it.imdbId.isEmpty()) { %> | [IMDb](https://imdb.com/title/<%= it.imdbId %>)<% } %>
 ```
