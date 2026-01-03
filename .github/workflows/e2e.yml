@@ -3,8 +3,8 @@ name: E2E Tests
 on:
     push:
         branches: [master]
-    pull_request_review:
-        types: [submitted]
+    pull_request:
+        types: [labeled]
 
 # Cancel in-progress runs when a new commit is pushed
 concurrency:
@@ -15,16 +15,16 @@ jobs:
     e2e:
         name: E2E Tests
         runs-on: ubuntu-latest
-        # Run on push to master, or when a PR review is approved
+        # Run on push to master, or when PR is labeled "ready for E2E"
         if: |
             github.event_name == 'push' ||
-            (github.event_name == 'pull_request_review' && github.event.review.state == 'approved')
+            (github.event_name == 'pull_request' && github.event.label.name == 'ready for E2E')
 
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
               with:
-                  # For PR reviews, checkout the PR branch
+                  # For PRs, checkout the PR branch
                   ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Setup Node.js
