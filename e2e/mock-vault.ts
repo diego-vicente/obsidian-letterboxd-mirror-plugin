@@ -210,29 +210,29 @@ export class MockApp {
 const E2E_DEFAULT_SETTINGS: LetterboxdSettings = {
 	username: "",
 	folderPath: "Letterboxd",
-	filenameTemplate: "{{watchedDate}} - {{filmTitle}}",
+	filenameTemplate: "<%= it.watchedDate %> - <%= it.filmTitle %>",
 	noteTemplate: `---
-film: "[[{{filmTitle}} ({{filmYear}})]]"
-rating: {{userRatingNoOver10}}
-watched_date: {{watchedDate}}
-letterboxd_url: {{link yaml=true}}
-tmdb_id: {{tmdbId}}
-poster: {{posterUrl yaml=true}}
-letterboxd_guid: {{guid}}
-letterboxd_tags: {{tags yaml=true}}
+film: "[[<%= it.filmTitle %> (<%= it.filmYear %>)]]"
+rating: <%= it.userRating.over(10) %>
+watched_date: <%= it.watchedDate %>
+letterboxd_url: <%= it.link.yaml() %>
+tmdb_id: <%= it.tmdbId %>
+poster: <%= it.posterUrl.yaml() %>
+letterboxd_guid: <%= it.guid %>
+letterboxd_tags: <%= it.tags.yaml() %>
 ---
 
-# [[{{filmTitle}} ({{filmYear}})]]
+# [[<%= it.filmTitle %> (<%= it.filmYear %>)]]
 
-{{posterUrl skipEmpty=true prefix="![Poster](" suffix=")"}}
+<% if (!it.posterUrl.isEmpty()) { %>![Poster](<%= it.posterUrl %>)
+<% } %>
+**Rating**: <%= it.userRating.stars() %>
+**Watched**: <%= it.watchedDate %><% if (it.rewatch.isTrue()) { %> (rewatch)<% } %>
 
-**Rating**: {{userRatingStars}}
-**Watched**: {{watchedDate}}{{#if rewatch}} (rewatch){{/if}}
-
-{{review skipEmpty=true quote=true}}
-
+<% if (!it.review.isEmpty()) { %><%= it.review.quote() %>
+<% } %>
 ---
-[View on Letterboxd]({{link}})
+[View on Letterboxd](<%= it.link %>)
 `,
 	syncOnStartup: false,
 	syncReviewsOnly: false,
@@ -240,14 +240,14 @@ letterboxd_tags: {{tags yaml=true}}
 	guidFrontmatterKey: "letterboxd_guid",
 	tmdbApiKey: "",
 	tmdbFolderPath: "Films",
-	tmdbFilenameTemplate: "{{title}} ({{year}})",
+	tmdbFilenameTemplate: "<%= it.title %> (<%= it.year %>)",
 	tmdbNoteTemplate: `---
-title: "{{title}}"
-year: {{year}}
-tmdb_id: {{tmdbId}}
+title: <%= it.title.yaml() %>
+year: <%= it.year %>
+tmdb_id: <%= it.tmdbId %>
 ---
 
-# {{title}} ({{year}})
+# <%= it.title %> (<%= it.year %>)
 `,
 	tmdbLanguage: "en-US",
 	tmdbIdFrontmatterKey: "tmdb_id",
