@@ -4,12 +4,11 @@ Sync your [Letterboxd](https://letterboxd.com) diary entries as notes in [Obsidi
 
 ## Features
 
-- **RSS sync** — Fetch diary entries from your public Letterboxd feed
-- **CSV import** — Import your complete Letterboxd data export with tags
-- **TMDB integration** — Create Film notes with cast, crew, genres, and metadata
-- **Rewatch support** — Each viewing gets its own note
-- **Customizable templates** — Full control over note content using [Eta](https://eta.js.org/) syntax
-- **Auto-sync** — Optionally sync on Obsidian startup
+- Fetch viewings each viewing from your **Letterboxd diary** as individual notes.
+- Batch import the history using **Letterboxd's exported data**.
+- Integrate with **TMDB API** to create additional notes with extended information for each film.
+- Deep customization of the **templates using the [Eta](https://eta.js.org) templating engine**.
+- Configure the plugin to **auto-sync** on Obsidian startup.
 
 ## Installation
 
@@ -34,9 +33,4 @@ See the [Usage Guide](docs/Usage.md) for detailed instructions.
 
 ## License
 
-[MIT](LICENSE) — Diego Vicente
-
-## Credits
-
-- Film data provided by [The Movie Database (TMDB)](https://www.themoviedb.org/)
-- Built for [Obsidian](https://obsidian.md)
+Licensed under [MIT License](LICENSE). Film data fetched from [The Movie Database (TMDB)](https://www.themoviedb.org/), built for [Obsidian](https://obsidian.md).
