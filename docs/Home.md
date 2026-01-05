@@ -4,8 +4,10 @@ Welcome to the Letterboxd Mirror plugin documentation.
 
 ## Contents
 
-- [Settings](Settings.md) — All configuration options explained
-- [Template Variables](Template-Variables.md) — Variables for diary and film notes
+- [Installation](Installation.md) — How to install the plugin
+- [Usage](Usage.md) — RSS sync, CSV import, TMDB setup
+- [Settings](Settings.md) — All configuration options
+- [Template Variables](Template-Variables.md) — Customize your note templates
 
 ## Quick Links
 

@@ -65,7 +65,7 @@ The Movie Database (TMDB) integration allows you to create Film notes with rich 
 
 ### API read access token
 
-Your TMDB API Read Access Token (Bearer token).
+Your TMDB API Read Access Token.
 
 **To get a token:**
 1. Create a free account at [themoviedb.org](https://www.themoviedb.org/)
