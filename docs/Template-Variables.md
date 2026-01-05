@@ -12,6 +12,17 @@ Templates use [Eta](https://eta.js.org/) syntax with fluent method chaining. The
 <% } %>
 ```
 
+### The `it.` Prefix
+
+All template variables are accessed through `it.` — this is [Eta's standard convention](https://eta.js.org/docs/learn/template-syntax) for accessing the data object passed to templates. Think of `it` as "the current item" being templated (your diary entry or film).
+
+```eta
+<%= it.filmTitle %>     ✓ Correct
+<%= filmTitle %>        ✗ Won't work
+```
+
+This design allows Eta templates to use any valid JavaScript expression while keeping a clear namespace for your data.
+
 ## Diary Note Variables
 
 These variables are available in diary note templates.
@@ -123,14 +134,15 @@ Available on string variables like `it.title`, `it.review`, `it.link`.
 
 | Method | Description | Example |
 |--------|-------------|---------|
-| `.link()` | Wrap in wiki-link brackets | `it.title.link()` → `[[The Godfather]]` |
+| `.link()` | Wrap in wiki-link brackets; empty string produces `[[]]` | `it.title.link()` → `[[The Godfather]]` |
 | `.bold()` | Apply bold formatting | `it.title.bold()` → `**The Godfather**` |
 | `.italic()` | Apply italic formatting | `it.title.italic()` → `*The Godfather*` |
-| `.quote()` | Convert to blockquote | `it.tagline.quote()` → `> An offer you can't refuse.` |
-| `.yaml()` | Wrap in YAML-safe quotes | `it.link.yaml()` → `"https://..."` |
+| `.quote()` | Convert to blockquote; empty string produces `> ` | `it.tagline.quote()` → `> An offer you can't refuse.` |
+| `.yaml()` | Wrap in YAML-safe quotes; empty string produces `""` | `it.link.yaml()` → `"https://..."` |
 | `.prefix(str)` | Add text before | `it.title.prefix("Film: ")` → `Film: The Godfather` |
 | `.suffix(str)` | Add text after | `it.year.suffix(" AD")` → `1972 AD` |
 | `.isEmpty()` | Check if empty (for conditionals) | `<% if (!it.review.isEmpty()) { %>` |
+| `.skipEmpty()` | Return value only if non-empty | `it.tagline.skipEmpty()` |
 | `.toNative()` | Get raw JavaScript string | `it.title.toNative().toUpperCase()` |
 
 **Chaining example:**
@@ -150,9 +162,9 @@ Available on array variables like `it.genres`, `it.cast`, `it.tags`.
 | `.bold()` | Apply bold to each item | `it.genres.bold()` |
 | `.italic()` | Apply italic to each item | `it.genres.italic()` |
 | `.join(sep)` | Join with custom separator | `it.genres.join(" / ")` → `Crime / Drama` |
-| `.bullet()` | Format as bullet list | See below |
-| `.yaml()` | Format as YAML inline array | `["Crime", "Drama"]` |
-| `.yamlMultiline()` | Format as YAML multiline list | See below |
+| `.bullet()` | Format as bullet list; empty array produces empty string | See below |
+| `.yaml()` | Format as YAML inline array; empty array produces `[]` | `["Crime", "Drama"]` |
+| `.yamlMultiline()` | Format as YAML multiline list; empty array produces empty string | See below |
 | `.map(fn)` | Transform each item | `it.cast.map(x => x.toUpperCase())` |
 | `.filter(fn)` | Filter items | `it.tags.filter(t => t !== "watched")` |
 | `.isEmpty()` | Check if empty | `<% if (!it.tags.isEmpty()) { %>` |
@@ -219,11 +231,11 @@ The `it.userRating` variable has special methods for formatting ratings.
 
 | Method | Description | Example |
 |--------|-------------|---------|
-| `.over(base)` | Scale to different base | `it.userRating.over(10)` → 7 (from 3.5) |
-| `.stars()` | Convert to star characters | `it.userRating.stars()` → `★★★½` |
+| `.over(base)` | Scale to different base; unrated returns `0` | `it.userRating.over(10)` → 7 (from 3.5) |
+| `.stars()` | Convert to star characters; unrated returns empty string | `it.userRating.stars()` → `★★★½` |
 | `.isRated()` | Check if rated | `<% if (it.userRating.isRated()) { %>` |
 | `.isUnrated()` | Check if unrated | `<% if (it.userRating.isUnrated()) { %>` |
-| `.toNative()` | Get raw number (or null) | |
+| `.toNative()` | Get raw number; returns `null` if unrated | |
 
 **Examples:**
 ```eta
@@ -240,8 +252,8 @@ The `it.poster` and `it.backdrop` variables have methods for selecting image siz
 
 | Method | Description | Example |
 |--------|-------------|---------|
-| `.size(s)` | Get URL at size (name or pixels) | `it.poster.size("L")` or `it.poster.size(500)` |
-| `.url()` | Get URL at default size | `it.poster.url()` |
+| `.size(s)` | Get URL at size (name or pixels); no image returns empty string | `it.poster.size("L")` or `it.poster.size(500)` |
+| `.url()` | Get URL at default size; no image returns empty string | `it.poster.url()` |
 | `.isEmpty()` | Check if image exists | `<% if (!it.poster.isEmpty()) { %>` |
 | `.toNative()` | Get raw image path | |
 
@@ -299,22 +311,416 @@ Use standard JavaScript conditionals with `<% %>` tags:
 
 ---
 
+## YAML and Frontmatter
+
+When outputting values in YAML frontmatter, use the `.yaml()` methods to ensure proper formatting and escaping.
+
+### Why Use YAML Methods?
+
+YAML frontmatter requires specific formatting:
+- Strings with special characters (colons, quotes, newlines) must be quoted
+- Arrays need bracket notation or multiline list format
+- Unquoted values can break frontmatter parsing
+
+### String Values
+
+Use `.yaml()` to safely quote strings:
+
+```eta
+---
+title: <%= it.title.yaml() %>
+url: <%= it.link.yaml() %>
+---
+```
+
+Output:
+```yaml
+---
+title: "The Godfather"
+url: "https://letterboxd.com/user/film/the-godfather/"
+---
+```
+
+If the title contains quotes, they're automatically escaped:
+```yaml
+title: "The \"Godfather\""
+```
+
+### Array Values
+
+Two formats are available for arrays:
+
+**Inline format** with `.yaml()`:
+```eta
+---
+genres: <%= it.genres.yaml() %>
+cast: <%= it.cast.top(5).link().yaml() %>
+---
+```
+
+Output:
+```yaml
+---
+genres: ["Crime", "Drama"]
+cast: ["[[Marlon Brando]]", "[[Al Pacino]]", "[[James Caan]]", "[[Robert Duvall]]", "[[Richard S. Castellano]]"]
+---
+```
+
+**Multiline format** with `.yamlMultiline()`:
+```eta
+---
+tags:
+<%= it.tags.yamlMultiline() %>
+---
+```
+
+Output:
+```yaml
+---
+tags:
+  - favorite
+  - rewatch
+  - cinema
+---
+```
+
+### When NOT to Use YAML Methods
+
+For simple values that don't need escaping, you can output directly:
+
+```eta
+---
+year: <%= it.year %>
+runtime: <%= it.runtime %>
+tmdb_id: <%= it.tmdbId %>
+rating: <%= it.userRating.over(10) %>
+---
+```
+
+---
+
 ## Advanced: Custom JavaScript
 
-Since templates use Eta, you can write any JavaScript expression:
+Since templates use [Eta](https://eta.js.org/), you can write any JavaScript expression. Use `.toNative()` to escape from fluent wrappers to raw JavaScript values.
+
+### Basic Expressions
 
 ```eta
 <%= it.title.toNative().toUpperCase() %>
 
-<%= it.genres.toNative().reverse().join(" | ") %>
-
 <%= it.year.toNative() >= 2000 ? "Modern" : "Classic" %>
-
-<% const rating = it.tmdbRating.toNative(); %>
-<% if (rating >= 8) { %>Highly rated!<% } %>
 ```
 
-Use `.toNative()` to escape from fluent wrappers to raw JavaScript values.
+### Working with Arrays
+
+The fluent API covers common cases, but JavaScript's array methods offer more flexibility:
+
+```eta
+<%# Reverse genre order %>
+<%= it.genres.toNative().reverse().join(" | ") %>
+
+<%# Get only genres starting with "A" %>
+<%= it.genres.toNative().filter(g => g.startsWith("A")).join(", ") %>
+
+<%# Count cast members %>
+This film has <%= it.cast.toNative().length %> credited actors.
+
+<%# Check if a specific genre exists %>
+<% if (it.genres.toNative().includes("Horror")) { %>
+🎃 This is a horror film!
+<% } %>
+```
+
+### String Manipulation
+
+For text transformations not covered by fluent methods:
+
+```eta
+<%# Title case %>
+<%= it.title.toNative().split(" ").map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join(" ") %>
+
+<%# Extract first word %>
+<%= it.title.toNative().split(" ")[0] %>
+
+<%# Truncate long overview %>
+<% const overview = it.overview.toNative(); %>
+<%= overview.length > 200 ? overview.substring(0, 200) + "..." : overview %>
+
+<%# Replace characters %>
+<%= it.title.toNative().replace(/:/g, " -") %>
+```
+
+### Number Formatting
+
+```eta
+<%# Format budget with currency %>
+<% const budget = it.budget.toNative(); %>
+<% if (budget > 0) { %>
+Budget: $<%= budget.toLocaleString() %>
+<% } %>
+
+<%# Calculate profit %>
+<% const profit = it.revenue.toNative() - it.budget.toNative(); %>
+<% if (profit > 0) { %>
+Profit: $<%= profit.toLocaleString() %>
+<% } %>
+
+<%# Round TMDB rating %>
+<%= Math.round(it.tmdbRating.toNative()) %>/10
+```
+
+### Date Manipulation
+
+```eta
+<%# Extract year from watched date %>
+<%= it.watchedDate.toNative().split("-")[0] %>
+
+<%# Format date differently %>
+<% const [year, month, day] = it.watchedDate.toNative().split("-"); %>
+Watched on <%= day %>/<%= month %>/<%= year %>
+
+<%# Calculate film age %>
+<% const filmAge = new Date().getFullYear() - it.year.toNative(); %>
+This film is <%= filmAge %> years old.
+```
+
+### Complex Conditionals
+
+```eta
+<%# Multi-condition logic %>
+<% const rating = it.tmdbRating.toNative(); %>
+<% const year = it.year.toNative(); %>
+<% if (rating >= 8 && year >= 2000) { %>
+Modern classic
+<% } else if (rating >= 8) { %>
+Classic
+<% } else if (year >= 2000) { %>
+Modern film
+<% } %>
+
+<%# Rating tier %>
+<% const r = it.userRating.toNative(); %>
+<% const tier = r >= 4.5 ? "Masterpiece" : r >= 3.5 ? "Great" : r >= 2.5 ? "Good" : r >= 1.5 ? "Mediocre" : "Poor"; %>
+Tier: <%= tier %>
+```
+
+### Combining Data
+
+```eta
+<%# Zip cast with characters manually %>
+<% const cast = it.cast.toNative(); %>
+<% const chars = it.characters.toNative(); %>
+<% for (let i = 0; i < Math.min(cast.length, 3); i++) { %>
+- **<%= cast[i] %>** plays _<%= chars[i] || "Unknown" %>_
+<% } %>
+
+<%# Create custom formatted list %>
+<% const genres = it.genres.toNative(); %>
+<% genres.forEach((genre, i) => { %>
+<%= i + 1 %>. <%= genre %>
+<% }); %>
+```
+
+---
+
+## Recipes
+
+Ready-to-use template snippets for common use cases.
+
+### Poster with Fallback
+
+Display poster only if available:
+
+```eta
+<% if (!it.posterUrl.isEmpty()) { %>
+![Poster](<%= it.posterUrl %>)
+<% } %>
+```
+
+For Film notes with size control:
+
+```eta
+<% if (!it.poster.isEmpty()) { %>
+![<%= it.title %>](<%= it.poster.size("L") %>)
+<% } %>
+```
+
+### Rating Display Variations
+
+```eta
+<%# Stars only %>
+<%= it.userRating.stars() %>
+
+<%# Stars with numeric %>
+<%= it.userRating.stars() %> (<%= it.userRating.over(10) %>/10)
+
+<%# Bold stars %>
+**<%= it.userRating.stars() %>**
+
+<%# Handle unrated %>
+<% if (it.userRating.isRated()) { %>
+Rating: <%= it.userRating.stars() %>
+<% } else { %>
+Rating: Not yet rated
+<% } %>
+```
+
+### Rewatch Badge
+
+Inline rewatch indicator:
+
+```eta
+**Watched**: <%= it.watchedDate %><%= it.rewatch.ifElse(" (rewatch)", "") %>
+```
+
+Or with conditional block:
+
+```eta
+**Watched**: <%= it.watchedDate %><% if (it.rewatch.isTrue()) { %> 🔄<% } %>
+```
+
+### Review with Spoiler Warning
+
+```eta
+<% if (!it.review.isEmpty()) { %>
+## Review
+<% if (it.containsSpoilers.isTrue()) { %>
+> ⚠️ **Warning: Contains spoilers**
+
+<% } %>
+<%= it.review.quote() %>
+<% } %>
+```
+
+### Linked Genres with Custom Separator
+
+```eta
+<%# Comma-separated links %>
+<%= it.genres.link() %>
+
+<%# Pipe-separated links %>
+<%= it.genres.link().join(" | ") %>
+
+<%# As tags %>
+<%= it.genres.map(g => "#" + g.replace(/ /g, "-")).join(" ") %>
+```
+
+### Top Cast with Roles
+
+```eta
+## Cast
+
+<%= it.castWithRoles.top(5).linkActors().bullet() %>
+```
+
+Output:
+```
+## Cast
+
+- [[Marlon Brando]] as Don Vito Corleone
+- [[Al Pacino]] as Michael Corleone
+- [[James Caan]] as Sonny Corleone
+- [[Robert Duvall]] as Tom Hagen
+- [[Richard S. Castellano]] as Clemenza
+```
+
+### Directors Section
+
+```eta
+<% if (!it.directors.isEmpty()) { %>
+**Director<%= it.directors.toNative().length > 1 ? "s" : "" %>**: <%= it.directors.link() %>
+<% } %>
+```
+
+### External Links
+
+```eta
+---
+[Letterboxd](<%= it.link %>)<% if (!it.tmdbId.isEmpty()) { %> | [TMDB](https://www.themoviedb.org/movie/<%= it.tmdbId %>)<% } %>
+```
+
+For Film notes with IMDb:
+
+```eta
+[TMDB](<%= it.tmdbUrl %>)<% if (!it.imdbId.isEmpty()) { %> | [IMDb](https://www.imdb.com/title/<%= it.imdbId %>)<% } %>
+```
+
+### Frontmatter with All Metadata
+
+Complete diary note frontmatter:
+
+```eta
+---
+film: "[[<%= it.filmTitle %>]]"
+year: <%= it.filmYear %>
+rating: <%= it.userRating.over(10) %>
+stars: <%= it.userRating.stars().yaml() %>
+watched: <%= it.watchedDate %>
+rewatch: <%= it.rewatch %>
+spoilers: <%= it.containsSpoilers %>
+url: <%= it.link.yaml() %>
+tmdb_id: <%= it.tmdbId %>
+poster: <%= it.posterUrl.yaml() %>
+guid: <%= it.guid %>
+tags: <%= it.tags.yaml() %>
+---
+```
+
+Complete Film note frontmatter:
+
+```eta
+---
+title: <%= it.title.yaml() %>
+original_title: <%= it.originalTitle.yaml() %>
+year: <%= it.year %>
+release_date: <%= it.releaseDate %>
+runtime: <%= it.runtime %>
+runtime_formatted: <%= it.runtimeFormatted.yaml() %>
+tmdb_id: <%= it.tmdbId %>
+imdb_id: <%= it.imdbId.yaml() %>
+tmdb_rating: <%= it.tmdbRating %>
+genres: <%= it.genres.yaml() %>
+directors: <%= it.directors.link().yaml() %>
+cast: <%= it.cast.top(10).link().yaml() %>
+collection: <%= it.collection.yaml() %>
+budget: <%= it.budget %>
+revenue: <%= it.revenue %>
+poster: <%= it.poster.size("L").yaml() %>
+backdrop: <%= it.backdrop.size("L").yaml() %>
+---
+```
+
+### Compact Film Card
+
+A minimal template for quick reference:
+
+```eta
+# <%= it.title %> (<%= it.year %>)
+
+<% if (!it.poster.isEmpty()) { %>![Poster](<%= it.poster.size("M") %>)
+<% } %>
+<%= it.tagline.italic() %>
+
+**Runtime**: <%= it.runtimeFormatted %> | **Rating**: <%= it.tmdbRating.fixed(1) %>/10
+**Genres**: <%= it.genres.link() %>
+**Director**: <%= it.directors.link() %>
+```
+
+### Dataview-Compatible Frontmatter
+
+For use with the Dataview plugin:
+
+```eta
+---
+type: film
+title: <%= it.title.yaml() %>
+year: <%= it.year %>
+watched: <%= it.watchedDate %>
+rating: <%= it.userRating.over(10) %>
+genres: <%= it.genres.yaml() %>
+directors: <%= it.directors.yaml() %>
+---
+```
 
 ---
 

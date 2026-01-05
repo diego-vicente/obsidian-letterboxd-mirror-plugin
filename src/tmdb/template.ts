@@ -149,8 +149,8 @@ class CastWithRolesHelper {
 		return `[${quoted.join(", ")}]`;
 	}
 
-	/** Format as YAML bullet list */
-	yamlBullet(): string {
+	/** Format as YAML multiline list (indented for frontmatter) */
+	yamlMultiline(): string {
 		return this.buildRoles()
 			.map((role) => `  - ${role}`)
 			.join("\n");
